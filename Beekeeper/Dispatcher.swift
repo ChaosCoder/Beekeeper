@@ -28,7 +28,7 @@ public class URLDispatcher: Dispatcher {
     public let timeout: TimeInterval
     public var maxBatchSize: Int
     
-    public init(baseURL: URL, path: String, signer: Signer, timeout: TimeInterval = 10, maxBatchSize: Int = 10, backend: API = JSONAPI()) {
+    public init(baseURL: URL, path: String, signer: Signer, timeout: TimeInterval = 30, maxBatchSize: Int = 10, backend: API = JSONAPI()) {
         self.baseURL = baseURL
         self.path = path
         self.signer = signer
