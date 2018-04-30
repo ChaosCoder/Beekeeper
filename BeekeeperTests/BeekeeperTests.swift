@@ -178,4 +178,10 @@ class BeekeeperTests: XCTestCase {
         XCTAssertEqual(beekeeper.queue.count, 0)
     }
     
+    func testTimeZone() {
+        let timestamp = Date(timeIntervalSince1970: 1524268799) // 2018-04-20T23:59:59Z
+        let day = timestamp.day
+        XCTAssertEqual(day, "2018-04-20")
+    }
+    
 }
