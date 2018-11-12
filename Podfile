@@ -7,7 +7,7 @@ target 'Beekeeper' do
 
   # Pods for Beekeeper
   pod 'JSONAPI', :git => "https://github.com/ChaosCoder/JSONAPI"
-  pod 'CryptoSwift', '~> 0.9.0'
+  pod 'CryptoSwift', '~> 0.13.0'
   
   target 'BeekeeperTests' do
     inherit! :search_paths
