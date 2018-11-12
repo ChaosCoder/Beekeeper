@@ -191,6 +191,7 @@
 				7DDDFADA2082941600F3426C /* Frameworks */,
 				7DDDFADB2082941600F3426C /* Headers */,
 				7DDDFADC2082941600F3426C /* Resources */,
+				D8F37034A00BA4E484792FCA /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -210,6 +211,7 @@
 				7DDDFAE42082941600F3426C /* Frameworks */,
 				7DDDFAE52082941600F3426C /* Resources */,
 				6337EF877D2333758B70B6FE /* [CP] Embed Pods Frameworks */,
+				3CC00B1333BCA18D755F8D2D /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -294,6 +296,25 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
+		3CC00B1333BCA18D755F8D2D /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-BeekeeperTests/Pods-BeekeeperTests-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
 		6337EF877D2333758B70B6FE /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -314,6 +335,25 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-BeekeeperTests/Pods-BeekeeperTests-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		D8F37034A00BA4E484792FCA /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Beekeeper/Pods-Beekeeper-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		E1D4D0F8274EA56AFC14455B /* [CP] Check Pods Manifest.lock */ = {
