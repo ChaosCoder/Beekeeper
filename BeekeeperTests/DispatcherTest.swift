@@ -14,7 +14,7 @@ class DispatcherTest: XCTestCase {
     
     func testDispatching() {
         let signer = RequestSigner(secret: "")
-        let dispatcher = URLDispatcher(baseURL: URL(string: "https://httpbin.org")!, path: "/post", signer: signer)
+        let dispatcher = URLDispatcher(baseURL: URL(string: "https://httpbin.org")!, path: "/status/200", signer: signer)
         
         let install = Date()
         let event = Event(id: "1", product: "0", timestamp: install.addingTimeInterval(1), name: "name", group: "group", detail: "detail", value: 42, previousEvent: "previous", previousEventTimestamp: install.day, install: install.day, custom: [])
@@ -41,6 +41,21 @@ class DispatcherTest: XCTestCase {
                     return XCTFail()
             }
             XCTAssertEqual(appError.error, "Test-Error")
+            expectation.fulfill()
+        }
+        wait(for: [expectation], timeout: 2)
+    }
+    
+    func testDispatchingWithUnexpectedResponseBody() {
+        let signer = RequestSigner(secret: "")
+        let dispatcher = URLDispatcher(baseURL: URL(string: "https://httpbin.org")!, path: "/post", signer: signer)
+        
+        let install = Date()
+        let event = Event(id: "1", product: "0", timestamp: install.addingTimeInterval(1), name: "name", group: "group", detail: "detail", value: 42, previousEvent: "previous", previousEventTimestamp: install.day, install: install.day, custom: [])
+        
+        let expectation = self.expectation(description: "Expectation")
+        dispatcher.dispatch(event: event) { (error: RequestError<URLDispatcherError>?) in
+            XCTAssertNil(error)
             expectation.fulfill()
         }
         wait(for: [expectation], timeout: 2)

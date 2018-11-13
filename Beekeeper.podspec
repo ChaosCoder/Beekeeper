@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 
   s.name         = "Beekeeper"
-  s.version      = "0.2.0"
+  s.version      = "0.2.1"
   s.summary      = "Anonymous Usage Statistics Tracking for iOS"
   s.description  = <<-DESC
                    Anonymous Usage Statistics Tracking for iOS

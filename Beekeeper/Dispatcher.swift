@@ -10,8 +10,6 @@ import Foundation
 import JSONAPI
 import Result
 
-struct None: Codable {}
-
 public protocol Dispatcher {
     var timeout: TimeInterval { get }
     var maxBatchSize: Int { get }
@@ -51,13 +49,6 @@ public class URLDispatcher: Dispatcher {
     
     private func send(events: [Event], completion: @escaping (RequestError<URLDispatcherError>?) -> Void) {
         backend.request(method: .POST, baseURL: baseURL, resource: path, headers: nil, params: nil, body: events,
-                        decorator: signer.sign, completion: { (response: Result<None, RequestError<URLDispatcherError>>) in
-                            switch response {
-                            case .success(_):
-                                completion(nil)
-                            case .failure(let error):
-                                completion(error)
-                            }
-        })
+                        decorator: signer.sign, completion: completion)
     }
 }

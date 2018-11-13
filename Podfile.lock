@@ -1,6 +1,6 @@
 PODS:
   - CryptoSwift (0.13.0)
-  - JSONAPI (0.3.2):
+  - JSONAPI (0.3.4):
     - Result (~> 4.0)
   - Result (4.0.0)
 
@@ -8,20 +8,25 @@ DEPENDENCIES:
   - CryptoSwift (~> 0.13.0)
   - JSONAPI (from `https://github.com/ChaosCoder/JSONAPI`)
 
+SPEC REPOS:
+  https://github.com/cocoapods/specs.git:
+    - CryptoSwift
+    - Result
+
 EXTERNAL SOURCES:
   JSONAPI:
     :git: https://github.com/ChaosCoder/JSONAPI
 
 CHECKOUT OPTIONS:
   JSONAPI:
-    :commit: 137fe6dda5ad896acfb3449d16c08408c34c1666
+    :commit: accf87521e462cfadc8011beddb16042a9ef11e7
     :git: https://github.com/ChaosCoder/JSONAPI
 
 SPEC CHECKSUMS:
   CryptoSwift: 16e78bebf567bad1c87b2d58f6547f25b74c31aa
-  JSONAPI: 0f03414149d3f87637178bee2ce50f55889c4a65
+  JSONAPI: 3f89f41917c173f3b41f2847932a0f0d6a17a1cb
   Result: 7645bb3f50c2ce726dd0ff2fa7b6f42bbe6c3713
 
 PODFILE CHECKSUM: 17455e408d63f239e2064323f2bc7b2f13600355
 
-COCOAPODS: 1.4.0
+COCOAPODS: 1.5.3
