@@ -1,15 +1,15 @@
 PODS:
-  - CryptoSwift (1.0.0)
-  - JSONAPI (1.0.0-beta.1):
-    - PromiseKit (~> 6.8.3)
-  - PromiseKit (6.8.4):
-    - PromiseKit/CorePromise (= 6.8.4)
-    - PromiseKit/Foundation (= 6.8.4)
-    - PromiseKit/UIKit (= 6.8.4)
-  - PromiseKit/CorePromise (6.8.4)
-  - PromiseKit/Foundation (6.8.4):
+  - CryptoSwift (1.3.0)
+  - JSONAPI (1.0.1):
+    - PromiseKit (~> 6.8)
+  - PromiseKit (6.13.1):
+    - PromiseKit/CorePromise (= 6.13.1)
+    - PromiseKit/Foundation (= 6.13.1)
+    - PromiseKit/UIKit (= 6.13.1)
+  - PromiseKit/CorePromise (6.13.1)
+  - PromiseKit/Foundation (6.13.1):
     - PromiseKit/CorePromise
-  - PromiseKit/UIKit (6.8.4):
+  - PromiseKit/UIKit (6.13.1):
     - PromiseKit/CorePromise
 
 DEPENDENCIES:
@@ -18,7 +18,7 @@ DEPENDENCIES:
   - PromiseKit
 
 SPEC REPOS:
-  https://github.com/cocoapods/specs.git:
+  trunk:
     - CryptoSwift
     - PromiseKit
 
@@ -28,14 +28,14 @@ EXTERNAL SOURCES:
 
 CHECKOUT OPTIONS:
   JSONAPI:
-    :commit: 748049700b88811ecbb0c31eb9a3b7b9fced90a5
+    :commit: 0593202fcee7f77a36484e763e5f572bfcc615cc
     :git: https://github.com/ChaosCoder/JSONAPI
 
 SPEC CHECKSUMS:
-  CryptoSwift: d81eeaa59dc5a8d03720fe919a6fd07b51f7439f
-  JSONAPI: aad494652bdc77bc379c866ca5c0bfeecb00b4f9
-  PromiseKit: 51794a832647e7b819336dc2279039ce9f1cc49b
+  CryptoSwift: 1283821600233bdbeb96d7b389c3288c3bf77211
+  JSONAPI: d387c54e6eeb0068ced549aa8719fcee5ce81ddb
+  PromiseKit: 28fda91c973cc377875d8c0ea4f973013c05b6db
 
 PODFILE CHECKSUM: b549cb682a821c602ccdea53eac8727d0588bae6
 
-COCOAPODS: 1.6.1
+COCOAPODS: 1.8.4

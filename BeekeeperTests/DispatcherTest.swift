@@ -96,21 +96,4 @@ class DispatcherTest: XCTestCase {
         }
         wait(for: [expectation], timeout: 2)
     }
-
-    func testDispatchingCallsSigner() {
-        let signer = MockSigner()
-        let mockBackend = MockAPI(response: EmptyResponse())
-        let dispatcher = URLDispatcher(baseURL: url, path: "/", signer: signer, backend: mockBackend)
-
-        let install = Date()
-        let event = Event(id: "1", product: "0", timestamp: install.addingTimeInterval(1), name: "name", group: "group", detail: "detail", value: 42, previousEvent: "previous", previousEventTimestamp: install.day, install: install.day, custom: [])
-
-        let expectation = self.expectation(description: "Expectation")
-        signer.callback = { _ in
-            expectation.fulfill()
-        }
-
-        dispatcher.dispatch(event: event).cauterize()
-        wait(for: [expectation], timeout: 2)
-    }
 }
