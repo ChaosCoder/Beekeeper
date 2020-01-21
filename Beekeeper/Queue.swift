@@ -38,7 +38,7 @@ public struct Queue<Item> {
     mutating func remove(max: Int) -> [Item] {
         let count = min(max, items.count)
         let part = items[..<count]
-        items = Array(items.dropFirst(count))
+        items.removeFirst(count)
         return Array(part)
     }
     

@@ -7,7 +7,8 @@
 //
 
 import Foundation
-import CryptoSwift
+import class CryptoSwift.HMAC
+import struct CryptoSwift.Digest
 
 public protocol Signer {
     func sign(request: inout URLRequest)

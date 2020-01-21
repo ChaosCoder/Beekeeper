@@ -8,14 +8,19 @@
 
 import Foundation
 import JSONAPI
+import PromiseKit
 
-protocol Tracker {
+public protocol BeekeeperType {
+    func start()
+    func stop()
+    
     func track(name: String, group: String?, detail: String?, value: Double?)
+    func dispatch(completion: (() -> Void)?)
 }
 
 let memoryKey = "_Beekeeper"
 
-public class Beekeeper: NSObject, Tracker {
+public class Beekeeper: NSObject, BeekeeperType {
     
     // MARK: Dependencies
     internal var storage: Storage
@@ -142,12 +147,12 @@ extension Beekeeper {
             completion?()
             return
         }
-        
-        dispatcher.dispatch(events: events) { (error) in
-            if error != nil {
-                print(error!)
-                self.queue.enqueue(items: events)
-            }
+
+        firstly {
+            dispatcher.dispatch(events: events)
+        }.catch { error in
+            self.queue.enqueue(items: events)
+        }.finally {
             completion?()
         }
     }
@@ -160,18 +165,18 @@ extension Beekeeper {
 
 @objc
 public extension Beekeeper {
-    @objc public convenience init(product: String, baseURL: URL, secret: String) {
+    @objc convenience init(product: String, baseURL: URL, secret: String) {
         let signer = RequestSigner(secret: secret)
         let path = "/\(product)"
         let dispatcher = URLDispatcher(baseURL: baseURL, path: path, signer: signer)
         self.init(product: product, dispatcher: dispatcher)
     }
     
-    @objc public func track(name: String, group: String? = nil, detail: String? = nil) {
+    @objc func track(name: String, group: String? = nil, detail: String? = nil) {
         track(name: name, group: group, detail: detail, value: nil)
     }
     
-    @objc public func trackValue(name: String, group: String? = nil, detail: String? = nil, value: NSNumber) {
+    @objc func trackValue(name: String, group: String? = nil, detail: String? = nil, value: NSNumber) {
         let double = value.doubleValue
         track(name: name, group: group, detail: detail, value: double)
     }

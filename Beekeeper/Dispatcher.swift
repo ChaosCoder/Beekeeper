@@ -8,16 +8,16 @@
 
 import Foundation
 import JSONAPI
-import Result
+import PromiseKit
 
 public protocol Dispatcher {
     var timeout: TimeInterval { get }
     var maxBatchSize: Int { get }
-    func dispatch(event: Event, completion: @escaping (RequestError<URLDispatcherError>?) -> Void)
-    func dispatch(events: [Event], completion: @escaping (RequestError<URLDispatcherError>?) -> Void)
+    func dispatch(event: Event) -> Promise<Void>
+    func dispatch(events: [Event]) -> Promise<Void>
 }
 
-public class URLDispatcherError: Codable, Error {
+public struct URLDispatcherError: Codable, Error {
     public let error: String
 }
 
@@ -39,16 +39,22 @@ public class URLDispatcher: Dispatcher {
         self.backend = backend
     }
     
-    public func dispatch(events: [Event], completion: @escaping (RequestError<URLDispatcherError>?) -> Void) {
-        send(events: events, completion: completion)
+    public func dispatch(events: [Event]) -> Promise<Void> {
+        return send(events: events)
     }
     
-    public func dispatch(event: Event, completion: @escaping (RequestError<URLDispatcherError>?) -> Void) {
-        send(events: [event], completion: completion)
+    public func dispatch(event: Event) -> Promise<Void> {
+        return send(events: [event])
     }
     
-    private func send(events: [Event], completion: @escaping (RequestError<URLDispatcherError>?) -> Void) {
-        backend.request(method: .POST, baseURL: baseURL, resource: path, headers: nil, params: nil, body: events,
-                        decorator: signer.sign, completion: completion)
+    private func send(events: [Event]) -> Promise<Void> {
+        return backend.request(method: .POST,
+                               baseURL: baseURL,
+                               resource: path,
+                               headers: nil,
+                               params: nil,
+                               body: events,
+                               error: URLDispatcherError.self,
+                               decorator: signer.sign(request:))
     }
 }

@@ -8,6 +8,7 @@
 
 import XCTest
 import JSONAPI
+import PromiseKit
 @testable import Beekeeper
 
 struct MockStorage: Storage {
@@ -35,17 +36,23 @@ struct MockStorage: Storage {
 }
 
 struct MockDispatcher: Dispatcher {
-    var callback: (([Event]) -> RequestError<URLDispatcherError>?)?
+    var callback: (([Event]) -> Error?)?
     var maxBatchSize: Int
     var timeout: TimeInterval
     
-    func dispatch(event: Event, completion: @escaping (RequestError<URLDispatcherError>?) -> Void) {
-        let error = callback?([event])
-        completion(error)
+    func dispatch(event: Event) -> Promise<Void> {
+        if let error = callback?([event]) {
+            return Promise(error: error)
+        } else {
+            return Promise()
+        }
     }
-    func dispatch(events: [Event], completion: @escaping (RequestError<URLDispatcherError>?) -> Void) {
-        let error = callback?(events)
-        completion(error)
+    func dispatch(events: [Event]) -> Promise<Void> {
+        if let error = callback?(events) {
+            return Promise(error: error)
+        } else {
+            return Promise()
+        }
     }
 }
 
@@ -104,7 +111,7 @@ class BeekeeperTests: XCTestCase {
         let eventName = "TestEvent"
         
         let mockStorage = MockStorage()
-        let mockDispatcher = MockDispatcher(callback: { (events) -> RequestError<URLDispatcherError>? in
+        let mockDispatcher = MockDispatcher(callback: { (events) -> Error? in
             XCTAssertEqual(events.count, 1)
             XCTAssertEqual(events[0].name, eventName)
             expect.fulfill()
@@ -126,7 +133,7 @@ class BeekeeperTests: XCTestCase {
         let event = Event(id: "id", product: "0", timestamp: timestamp, name: "Test", group: nil, detail: nil, value: nil, previousEvent: nil, previousEventTimestamp: nil, install: date, custom: [])
         
         let mockStorage = MockStorage()
-        let mockDispatcher = MockDispatcher(callback: { (events) -> RequestError<URLDispatcherError>? in
+        let mockDispatcher = MockDispatcher(callback: { (events) -> Error? in
             let newEvent = events[2]
             XCTAssertEqual(newEvent.previousEvent, "Other")
             XCTAssertEqual(newEvent.previousEventTimestamp, date)
@@ -150,7 +157,7 @@ class BeekeeperTests: XCTestCase {
         let eventName = "TestEvent"
         
         let mockStorage = MockStorage()
-        let mockDispatcher = MockDispatcher(callback: { (events) -> RequestError<URLDispatcherError>? in
+        let mockDispatcher = MockDispatcher(callback: { (events) -> Error? in
             let event = events[0]
             XCTAssertEqual(event.name, eventName)
             XCTAssertEqual(event.previousEvent, nil)
