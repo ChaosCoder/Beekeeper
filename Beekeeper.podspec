@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 
   s.name         = "Beekeeper"
-  s.version      = "0.3.0"
+  s.version      = "0.3.1"
   s.summary      = "Anonymous Usage Statistics Tracking for iOS"
   s.description  = <<-DESC
                    Anonymous Usage Statistics Tracking for iOS
@@ -12,7 +12,7 @@ Pod::Spec.new do |s|
   s.author             = { "Andreas Ganske" => "a.ganske@chaosspace.de" }
 
   s.platform     = :ios, "10.0"
-  s.swift_version= "4.2"
+  s.swift_version= "5.0"
   s.source       = { :git => "https://github.com/ChaosCoder/Beekeeper.git", :tag => "#{s.version}" }
 
   s.source_files  = "Beekeeper", "Beekeeper/**/*.swift"
