@@ -14,6 +14,8 @@ public protocol BeekeeperType {
     func start()
     func stop()
     
+    func setInstallDate(_ installDate: Date)
+    func setProperty(_ index: Int, value: String?)
     func track(name: String, group: String?, detail: String?, value: Double?)
     func dispatch(completion: (() -> Void)?)
 }
