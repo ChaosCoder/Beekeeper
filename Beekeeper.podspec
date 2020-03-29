@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 
   s.name         = "Beekeeper"
-  s.version      = "0.3.2"
+  s.version      = "0.3.3"
   s.summary      = "Anonymous Usage Statistics Tracking for iOS"
   s.description  = <<-DESC
                    Anonymous Usage Statistics Tracking for iOS
@@ -18,5 +18,6 @@ Pod::Spec.new do |s|
   s.source_files  = "Beekeeper", "Beekeeper/**/*.swift"
   s.dependency "JSONAPI"
   s.dependency "CryptoSwift"
+  s.dependency "PromiseKit"
 
 end
