@@ -1,4 +1,4 @@
-![](Icon.png)
+![](Logo.png)
 [![](http://img.shields.io/badge/Swift-5.0-blue.svg)]() [![](http://img.shields.io/badge/iOS-10.0%2B-blue.svg)]() [![](https://img.shields.io/github/license/ChaosCoder/Beekeeper.svg)](LICENSE.md) [![Build Status](https://app.bitrise.io/app/de6c8de2d3e47847/status.svg?token=almCOiEviEDNJOAM2G5WQQ&branch=master)](https://app.bitrise.io/app/de6c8de2d3e47847)
 
 # Beekeeper
