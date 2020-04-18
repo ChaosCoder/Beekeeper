@@ -7,7 +7,7 @@
 //
 
 import XCTest
-import JSONAPI
+import ConveyPI
 import PromiseKit
 @testable import Beekeeper
 

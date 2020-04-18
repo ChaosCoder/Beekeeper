@@ -2,7 +2,7 @@ platform :ios, '10.0'
 use_frameworks!
 
 def shared_pods
-  pod 'JSONAPI', :git => "https://github.com/ChaosCoder/JSONAPI"
+  pod 'ConveyPI'
   pod 'CryptoSwift'
   pod 'PromiseKit'
 end

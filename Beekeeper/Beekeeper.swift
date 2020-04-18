@@ -7,7 +7,7 @@
 //
 
 import Foundation
-import JSONAPI
+import ConveyPI
 import PromiseKit
 
 public protocol BeekeeperType {
