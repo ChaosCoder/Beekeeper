@@ -7,7 +7,7 @@
 //
 
 import Foundation
-import ConveyPI
+import ConvAPI
 import PromiseKit
 
 public protocol Dispatcher {
@@ -30,7 +30,7 @@ public class URLDispatcher: Dispatcher {
     public let timeout: TimeInterval
     public var maxBatchSize: Int
     
-    public init(baseURL: URL, path: String, signer: Signer, timeout: TimeInterval = 30, maxBatchSize: Int = 10, backend: API = ConveyPI()) {
+    public init(baseURL: URL, path: String, signer: Signer, timeout: TimeInterval = 30, maxBatchSize: Int = 10, backend: API = ConvAPI()) {
         self.baseURL = baseURL
         self.path = path
         self.signer = signer

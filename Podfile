@@ -2,7 +2,7 @@ platform :ios, '10.0'
 use_frameworks!
 
 def shared_pods
-  pod 'ConveyPI'
+  pod 'ConvAPI'
   pod 'CryptoSwift'
   pod 'PromiseKit'
 end

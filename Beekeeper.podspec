@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 
   s.name         = "Beekeeper"
-  s.version      = "0.3.4"
+  s.version      = "0.3.5"
   s.summary      = "Anonymous Usage Statistics Tracking for iOS"
   s.description  = <<-DESC
   Beekeeper allows you to get insights about your most important KPIs like daily, weekly or monthy active users, funnels and events and much more without sacrifying the users privacy.
@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   s.source       = { :git => "https://github.com/ChaosCoder/Beekeeper.git", :tag => "#{s.version}" }
 
   s.source_files  = "Beekeeper", "Beekeeper/**/*.swift"
-  s.dependency "ConveyPI"
+  s.dependency "ConvAPI"
   s.dependency "CryptoSwift"
   s.dependency "PromiseKit"
 

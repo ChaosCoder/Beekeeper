@@ -1,7 +1,7 @@
 PODS:
-  - ConveyPI (2.0.0):
+  - ConvAPI (1.0.0):
     - PromiseKit (~> 6.8)
-  - CryptoSwift (1.3.0)
+  - CryptoSwift (1.3.1)
   - PromiseKit (6.13.1):
     - PromiseKit/CorePromise (= 6.13.1)
     - PromiseKit/Foundation (= 6.13.1)
@@ -13,21 +13,21 @@ PODS:
     - PromiseKit/CorePromise
 
 DEPENDENCIES:
-  - ConveyPI
+  - ConvAPI
   - CryptoSwift
   - PromiseKit
 
 SPEC REPOS:
   trunk:
-    - ConveyPI
+    - ConvAPI
     - CryptoSwift
     - PromiseKit
 
 SPEC CHECKSUMS:
-  ConveyPI: 61bc07362dc6bc229e81c1f9f1db12ed27b98d8d
-  CryptoSwift: 1283821600233bdbeb96d7b389c3288c3bf77211
+  ConvAPI: 92271adaee960b04ddcea37aeffc4f53ad54cdfd
+  CryptoSwift: f12f037f6d0fcd6d48c96db0071b653de64e6c4d
   PromiseKit: 28fda91c973cc377875d8c0ea4f973013c05b6db
 
-PODFILE CHECKSUM: d598f490ece4bbdea62dfc1dd89a84fa5fa92553
+PODFILE CHECKSUM: eafbe343ef9279452877a25d488126d7b35cb0b5
 
 COCOAPODS: 1.9.1

@@ -7,7 +7,7 @@
 //
 
 import XCTest
-import ConveyPI
+import ConvAPI
 import PromiseKit
 @testable import Beekeeper
 
