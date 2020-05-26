@@ -16,7 +16,7 @@ public protocol BeekeeperType {
     
     func setInstallDate(_ installDate: Date)
     func setProperty(_ index: Int, value: String?)
-    func track(name: String, group: String?, detail: String?, value: Double?)
+    func track(name: String, group: String, detail: String?, value: Double?)
     func dispatch(completion: (() -> Void)?)
 }
 
@@ -102,8 +102,18 @@ extension Beekeeper {
         return isActive && dispatchTimer?.isValid ?? false
     }
     
-    public func track(name: String, group: String? = nil, detail: String? = nil, value: Double? = nil) {
-        let event = Event(id: UUID().uuidString.replacingOccurrences(of: "-", with: ""), product: product, timestamp: Date(), name: name, group: group, detail: detail, value: value, previousEvent: memory.previousEvent, previousEventTimestamp: memory.lastTimestamp(eventName: name), install: memory.installDay, custom: memory.custom)
+    public func track(name: String, group: String, detail: String? = nil, value: Double? = nil) {
+        let event = Event(id: UUID().uuidString.replacingOccurrences(of: "-", with: ""),
+                          product: product,
+                          timestamp: Date(),
+                          name: name,
+                          group: group,
+                          detail: detail,
+                          value: value,
+                          previousEvent: memory.previousEvent(group: group),
+                          previousEventTimestamp: memory.lastTimestamp(eventName: name),
+                          install: memory.installDay,
+                          custom: memory.custom)
         track(event: event)
     }
     
@@ -174,11 +184,11 @@ public extension Beekeeper {
         self.init(product: product, dispatcher: dispatcher)
     }
     
-    @objc func track(name: String, group: String? = nil, detail: String? = nil) {
+    @objc func track(name: String, group: String, detail: String? = nil) {
         track(name: name, group: group, detail: detail, value: nil)
     }
     
-    @objc func trackValue(name: String, group: String? = nil, detail: String? = nil, value: NSNumber) {
+    @objc func trackValue(name: String, group: String, detail: String? = nil, value: NSNumber) {
         let double = value.doubleValue
         track(name: name, group: group, detail: detail, value: double)
     }

@@ -13,7 +13,7 @@ public struct Event: Codable {
     let product: String
     let timestamp: Date
     let name: String
-    let group: String?
+    let group: String
     let detail: String?
     let value: Double?
     let previousEvent: String?

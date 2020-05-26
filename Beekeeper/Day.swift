@@ -8,7 +8,7 @@
 
 import Foundation
 
-typealias Day = String
+public typealias Day = String
 
 extension Date {
     var day: Day {

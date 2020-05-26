@@ -68,11 +68,15 @@ class BeekeeperTests: XCTestCase {
         
         let beekeeper = testableBeekeeper
         
-        let eventName = "TestEvent"
-        beekeeper.track(name: eventName)
+        let eventName = "TestName"
+        let eventGroup = "TestGroup"
+        beekeeper.track(name: eventName, group: eventGroup)
         
         XCTAssertEqual(beekeeper.queue.count, 1)
-        XCTAssertEqual(beekeeper.queue.first()?.name, eventName)
+        
+        let event = beekeeper.queue.first()
+        XCTAssertEqual(event?.name, eventName)
+        XCTAssertEqual(event?.group, eventGroup)
     }
     
     func testSuccessfulDispatchingClearsQueue() {
@@ -80,8 +84,9 @@ class BeekeeperTests: XCTestCase {
         let beekeeper = testableBeekeeper
         beekeeper.start()
         
-        let eventName = "TestEvent"
-        beekeeper.track(name: eventName)
+        let eventName = "TestName"
+        let eventGroup = "TestGroup"
+        beekeeper.track(name: eventName, group: eventGroup)
         
         XCTAssertEqual(beekeeper.queue.count, 1)
         beekeeper.dispatch()
@@ -101,14 +106,15 @@ class BeekeeperTests: XCTestCase {
         let beekeeper = testableBeekeeper
         beekeeper.start()
         XCTAssertTrue(beekeeper.isRunning())
-        beekeeper.track(name: "Test")
+        beekeeper.track(name: "Name", group: "Group")
         XCTAssertTrue(beekeeper.isRunning())
     }
     
     func testBeekeeperAutomaticallyDispatchesEvents() {
         
         let expect = expectation(description: "Completion")
-        let eventName = "TestEvent"
+        let eventName = "TestName"
+        let eventGroup = "TestGroup"
         
         let mockStorage = MockStorage()
         let mockDispatcher = MockDispatcher(callback: { (events) -> Error? in
@@ -120,7 +126,7 @@ class BeekeeperTests: XCTestCase {
         let beekeeper = Beekeeper(product: "0", dispatcher: mockDispatcher, storage: mockStorage, queue: Queue<Event>())
         
         beekeeper.start()
-        beekeeper.track(name: eventName)
+        beekeeper.track(name: eventName, group: eventGroup)
         
         wait(for: [expect], timeout: 2)
     }
@@ -130,21 +136,36 @@ class BeekeeperTests: XCTestCase {
         
         let date = "2018-04-20"
         let timestamp = Date(timeIntervalSince1970: 1524234032) // 2018-04-20T14:20:32Z
-        let event = Event(id: "id", product: "0", timestamp: timestamp, name: "Test", group: nil, detail: nil, value: nil, previousEvent: nil, previousEventTimestamp: nil, install: date, custom: [])
+        let event = Event(id: "id", product: "0", timestamp: timestamp, name: "Name", group: "Group", detail: nil, value: nil, previousEvent: nil, previousEventTimestamp: nil, install: date, custom: [])
         
         let mockStorage = MockStorage()
         let mockDispatcher = MockDispatcher(callback: { (events) -> Error? in
-            let newEvent = events[2]
-            XCTAssertEqual(newEvent.previousEvent, "Other")
-            XCTAssertEqual(newEvent.previousEventTimestamp, date)
+            XCTAssertEqual(events.count, 4)
+            
+            let otherGroupEvent = events[1]
+            XCTAssertEqual(otherGroupEvent.name, "Other Group")
+            XCTAssertNil(otherGroupEvent.previousEvent)
+            XCTAssertNil(otherGroupEvent.previousEventTimestamp)
+            
+            let sameGroupEvent = events[2]
+            XCTAssertEqual(sameGroupEvent.name, "Same Group")
+            XCTAssertEqual(sameGroupEvent.previousEvent, "Name")
+            XCTAssertNil(sameGroupEvent.previousEventTimestamp)
+            
+            let newTestName = events[3]
+            XCTAssertEqual(newTestName.name, "Name")
+            XCTAssertEqual(newTestName.previousEvent, "Same Group")
+            XCTAssertEqual(newTestName.previousEventTimestamp, date)
+            
             expect.fulfill()
             return nil
-        }, maxBatchSize: 3, timeout: 1)
+        }, maxBatchSize: 5, timeout: 1)
         let beekeeper = Beekeeper(product: "0", dispatcher: mockDispatcher, storage: mockStorage, queue: Queue<Event>())
         beekeeper.start()
         beekeeper.track(event: event)
-        beekeeper.track(name: "Other")
-        beekeeper.track(name: "Test")
+        beekeeper.track(name: "Other Group", group: "Other Group")
+        beekeeper.track(name: "Same Group", group: "Group")
+        beekeeper.track(name: "Name", group: "Group")
         beekeeper.dispatch()
         
         wait(for: [expect], timeout: 2)
@@ -154,7 +175,8 @@ class BeekeeperTests: XCTestCase {
         let expect = expectation(description: "Completion")
         expect.expectedFulfillmentCount = 2
         
-        let eventName = "TestEvent"
+        let eventName = "TestName"
+        let eventGroup = "TestGroup"
         
         let mockStorage = MockStorage()
         let mockDispatcher = MockDispatcher(callback: { (events) -> Error? in
@@ -168,10 +190,10 @@ class BeekeeperTests: XCTestCase {
         let beekeeper = Beekeeper(product: "0", dispatcher: mockDispatcher, storage: mockStorage, queue: Queue<Event>())
         beekeeper.start()
         
-        beekeeper.track(name: eventName)
+        beekeeper.track(name: eventName, group: eventGroup)
         beekeeper.dispatch()
         beekeeper.reset()
-        beekeeper.track(name: eventName)
+        beekeeper.track(name: eventName, group: eventGroup)
         beekeeper.dispatch()
         
         wait(for: [expect], timeout: 5)
@@ -182,7 +204,7 @@ class BeekeeperTests: XCTestCase {
         beekeeper.optedOut = true
         
         beekeeper.start()
-        beekeeper.track(name: "Test")
+        beekeeper.track(name: "Name", group: "Group")
         XCTAssertEqual(beekeeper.queue.count, 0)
     }
     
