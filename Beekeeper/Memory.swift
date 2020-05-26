@@ -8,8 +8,20 @@
 
 import Foundation
 
+public struct EventNameGroup: Codable, Hashable {
+    
+    public let name: String
+    public let group: String
+    
+    public init(name: String, group: String) {
+        self.name = name
+        self.group = group
+    }
+}
+
 public struct Memory: Codable {
-    var lastDay: [String: Day]
+    
+    var lastDay: [EventNameGroup: Day]
     var installDay: Day
     var previousEvent: [String: String]
     var optedOut: Bool
@@ -24,7 +36,7 @@ public struct Memory: Codable {
         optedOut = false
     }
     
-    public init(lastDay: [String: Day], installDay: Day, previousEvent: [String: String], optedOut: Bool, custom: [String]) {
+    public init(lastDay: [EventNameGroup: Day], installDay: Day, previousEvent: [String: String], optedOut: Bool, custom: [String]) {
         self.lastDay = lastDay
         self.installDay = installDay
         self.previousEvent = previousEvent
@@ -34,14 +46,14 @@ public struct Memory: Codable {
     
     mutating func memorize(event: Event) {
         self.previousEvent[event.group] = event.name
-        self.lastDay[event.name] = event.timestamp.day
+        self.lastDay[EventNameGroup(name: event.name, group: event.group)] = event.timestamp.day
     }
     
     func previousEvent(group: String) -> String? {
         return previousEvent[group]
     }
     
-    func lastTimestamp(eventName: String) -> String? {
-        return lastDay[eventName]
+    func lastTimestamp(eventName: String, eventGroup: String) -> String? {
+        return lastDay[EventNameGroup(name: eventName, group: eventGroup)]
     }
 }

@@ -140,32 +140,38 @@ class BeekeeperTests: XCTestCase {
         
         let mockStorage = MockStorage()
         let mockDispatcher = MockDispatcher(callback: { (events) -> Error? in
-            XCTAssertEqual(events.count, 4)
+            XCTAssertEqual(events.count, 5)
             
             let otherGroupEvent = events[1]
-            XCTAssertEqual(otherGroupEvent.name, "Other Group")
+            XCTAssertEqual(otherGroupEvent.name, "Other")
             XCTAssertNil(otherGroupEvent.previousEvent)
             XCTAssertNil(otherGroupEvent.previousEventTimestamp)
             
             let sameGroupEvent = events[2]
-            XCTAssertEqual(sameGroupEvent.name, "Same Group")
+            XCTAssertEqual(sameGroupEvent.name, "Same")
             XCTAssertEqual(sameGroupEvent.previousEvent, "Name")
             XCTAssertNil(sameGroupEvent.previousEventTimestamp)
             
             let newTestName = events[3]
             XCTAssertEqual(newTestName.name, "Name")
-            XCTAssertEqual(newTestName.previousEvent, "Same Group")
+            XCTAssertEqual(newTestName.previousEvent, "Same")
             XCTAssertEqual(newTestName.previousEventTimestamp, date)
+            
+            let newTestNameInOtherGroup = events[4]
+            XCTAssertEqual(newTestNameInOtherGroup.name, "Name")
+            XCTAssertEqual(newTestNameInOtherGroup.previousEvent, "Other")
+            XCTAssertNotEqual(newTestNameInOtherGroup.previousEventTimestamp, date)
             
             expect.fulfill()
             return nil
-        }, maxBatchSize: 5, timeout: 1)
+        }, maxBatchSize: 10, timeout: 1)
         let beekeeper = Beekeeper(product: "0", dispatcher: mockDispatcher, storage: mockStorage, queue: Queue<Event>())
         beekeeper.start()
         beekeeper.track(event: event)
-        beekeeper.track(name: "Other Group", group: "Other Group")
-        beekeeper.track(name: "Same Group", group: "Group")
+        beekeeper.track(name: "Other", group: "Other Group")
+        beekeeper.track(name: "Same", group: "Group")
         beekeeper.track(name: "Name", group: "Group")
+        beekeeper.track(name: "Name", group: "Other Group")
         beekeeper.dispatch()
         
         wait(for: [expect], timeout: 2)

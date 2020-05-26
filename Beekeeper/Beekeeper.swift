@@ -111,7 +111,7 @@ extension Beekeeper {
                           detail: detail,
                           value: value,
                           previousEvent: memory.previousEvent(group: group),
-                          previousEventTimestamp: memory.lastTimestamp(eventName: name),
+                          previousEventTimestamp: memory.lastTimestamp(eventName: name, eventGroup: group),
                           install: memory.installDay,
                           custom: memory.custom)
         track(event: event)
