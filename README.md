@@ -1,4 +1,4 @@
-![](Logo.png)
+![](https://github.com/ChaosCoder/Beekeeper/blob/master/Logo.png)
 [![](http://img.shields.io/badge/Swift-5.0-blue.svg)]() [![](http://img.shields.io/badge/iOS-10.0%2B-blue.svg)]() [![](https://img.shields.io/github/license/ChaosCoder/Beekeeper.svg)](LICENSE.md) [![Build Status](https://app.bitrise.io/app/de6c8de2d3e47847/status.svg?token=almCOiEviEDNJOAM2G5WQQ&branch=master)](https://app.bitrise.io/app/de6c8de2d3e47847)
 
 # Beekeeper
@@ -22,13 +22,13 @@ An event, that is fired in your app, includes the following data:
 - `product: String`: The app the event was fired in
 - `timestamp: Date`: The precise timestamp the event was fired
 - `name: String`: The name of the event
-- `group: String?`: The group/category of the event (optional)
+- `group: String`: The group/category of the event
 - `detail: String?`: A detail of the event (optional)
 - `value: Double?`: A numeric value of the event (optional)
 - `custom: [String]`: Custom data
 
 Additionally, each event carries metadata. This metadata is usually the crucial part for the privacy of the user. Let's have a look at the metadata:
-- `previousEvent: String?`: Event (name), that was triggered before this event
+- `previousEvent: String?`: Event (name), that was triggered before this event within the same group
 - `previousEventTimestamp: Day?`: Date (day precision), when an event of the same, was triggered last time
 - `install: Day`: Date (day precision), when the user installed the app
 
