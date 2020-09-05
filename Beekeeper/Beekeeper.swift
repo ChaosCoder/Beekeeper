@@ -15,6 +15,7 @@ public protocol BeekeeperType {
     func stop()
     
     func setInstallDate(_ installDate: Date)
+    func setPropertyCount(_ count: Int)
     func setProperty(_ index: Int, value: String?)
     func track(name: String, group: String, detail: String?, value: Double?)
     func dispatch(completion: (() -> Void)?)
@@ -132,15 +133,17 @@ extension Beekeeper {
         memory.installDay = installDate.day
     }
     
-    @objc public func setProperty(_ index: Int, value: String?) {
-        guard let value = value else {
-            memory.custom.remove(at: index)
-            return
+    @objc public func setPropertyCount(_ count: Int) {
+        if count > memory.custom.count {
+            memory.custom.append(contentsOf: [String?].init(repeating: nil, count: count - memory.custom.count))
+        } else if count < memory.custom.count {
+            memory.custom.removeSubrange(count..<memory.custom.count)
         }
-        
-        guard memory.custom.count > index else {
-            memory.custom.insert(value, at: index)
-            return
+    }
+    
+    @objc public func setProperty(_ index: Int, value: String?) {
+        if index >= memory.custom.count {
+            setPropertyCount(index + 1)
         }
         
         memory.custom[index] = value

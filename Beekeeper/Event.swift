@@ -19,7 +19,7 @@ public struct Event: Codable {
     let previousEvent: String?
     let previousEventTimestamp: Day?
     let install: Day
-    let custom: [String]
+    let custom: [String?]
     
     private enum CodingKeys: String, CodingKey {
         case id = "id"

@@ -59,7 +59,7 @@ class DispatcherTest: XCTestCase {
         let dispatcher = URLDispatcher(baseURL: url, path: "/", signer: signer, backend: mockBackend)
         
         let install = Date()
-        let event = Event(id: "1", product: "0", timestamp: install.addingTimeInterval(1), name: "name", group: "group", detail: "detail", value: 42, previousEvent: "previous", previousEventTimestamp: install.day, install: install.day, custom: [])
+        let event = Event(id: "1", product: "0", timestamp: install.addingTimeInterval(1), name: "name", group: "group", detail: "detail", value: 42, previousEvent: "previous", previousEventTimestamp: install.day, install: install.day, custom: ["123", nil, "345"])
         
         let expectation = self.expectation(description: "Expectation")
         firstly {
@@ -79,7 +79,7 @@ class DispatcherTest: XCTestCase {
         let dispatcher = URLDispatcher(baseURL: url, path: "/", signer: signer, backend: mockBackend)
         
         let install = Date()
-        let event = Event(id: "1", product: "0", timestamp: install.addingTimeInterval(1), name: "name", group: "group", detail: "detail", value: 42, previousEvent: "previous", previousEventTimestamp: install.day, install: install.day, custom: [])
+        let event = Event(id: "1", product: "0", timestamp: install.addingTimeInterval(1), name: "name", group: "group", detail: "detail", value: 42, previousEvent: "previous", previousEventTimestamp: install.day, install: install.day, custom: ["123", nil, "345"])
         
         let expectation = self.expectation(description: "Expectation")
         firstly {

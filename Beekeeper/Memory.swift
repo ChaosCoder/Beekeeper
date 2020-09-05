@@ -26,7 +26,7 @@ public struct Memory: Codable {
     var previousEvent: [String: String]
     var optedOut: Bool
     
-    var custom: [String]
+    var custom: [String?]
     
     init() {
         lastDay = [:]
@@ -36,7 +36,7 @@ public struct Memory: Codable {
         optedOut = false
     }
     
-    public init(lastDay: [EventNameGroup: Day], installDay: Day, previousEvent: [String: String], optedOut: Bool, custom: [String]) {
+    public init(lastDay: [EventNameGroup: Day], installDay: Day, previousEvent: [String: String], optedOut: Bool, custom: [String?]) {
         self.lastDay = lastDay
         self.installDay = installDay
         self.previousEvent = previousEvent

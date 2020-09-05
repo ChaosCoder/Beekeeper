@@ -220,4 +220,49 @@ class BeekeeperTests: XCTestCase {
         XCTAssertEqual(day, "2018-04-20")
     }
     
+    func testSettingProperty() {
+        let beekeeper = testableBeekeeper
+        beekeeper.setProperty(1, value: "1")
+        beekeeper.track(name: "First", group: "Group")
+        
+        beekeeper.setProperty(0, value: "0")
+        beekeeper.track(name: "Second", group: "Group")
+        
+        XCTAssertEqual(beekeeper.queue.count, 2)
+        
+        let firstEvent = beekeeper.queue.items[0]
+        XCTAssertEqual(firstEvent.custom, [nil, "1"])
+        
+        let secondEvent = beekeeper.queue.items[1]
+        XCTAssertEqual(secondEvent.custom, ["0", "1"])
+        
+        beekeeper.setProperty(0, value: nil)
+        beekeeper.setProperty(1, value: nil)
+        beekeeper.track(name: "Third", group: "Group")
+        
+        let thirdEvent = beekeeper.queue.items[2]
+        XCTAssertEqual(thirdEvent.custom, [nil, nil])
+    }
+    
+    func testSettingPropertyCount() {
+        let beekeeper = testableBeekeeper
+        beekeeper.setPropertyCount(3)
+        beekeeper.track(name: "First", group: "Group")
+        
+        let firstEvent = beekeeper.queue.items[0]
+        XCTAssertEqual(firstEvent.custom, [nil, nil, nil])
+        
+        beekeeper.setProperty(1, value: "1")
+        beekeeper.track(name: "Second", group: "Group")
+        
+        let secondEvent = beekeeper.queue.items[1]
+        XCTAssertEqual(secondEvent.custom, [nil, "1", nil])
+        
+        beekeeper.setPropertyCount(2)
+        beekeeper.track(name: "Third", group: "Group")
+        
+        let thirdEvent = beekeeper.queue.items[2]
+        XCTAssertEqual(thirdEvent.custom, [nil, "1"])
+    }
+    
 }
