@@ -70,13 +70,20 @@ class BeekeeperTests: XCTestCase {
         
         let eventName = "TestName"
         let eventGroup = "TestGroup"
-        beekeeper.track(name: eventName, group: eventGroup)
+        let eventDetail = "TestDetail"
+        let eventValue = 1.0
+        let eventCustom = ["Custom"]
+        
+        beekeeper.track(name: eventName, group: eventGroup, detail: eventDetail, value: eventValue, custom: eventCustom)
         
         XCTAssertEqual(beekeeper.queue.count, 1)
         
         let event = beekeeper.queue.first()
         XCTAssertEqual(event?.name, eventName)
         XCTAssertEqual(event?.group, eventGroup)
+        XCTAssertEqual(event?.detail, eventDetail)
+        XCTAssertEqual(event?.value, eventValue)
+        XCTAssertEqual(event?.custom, eventCustom)
     }
     
     func testSuccessfulDispatchingClearsQueue() {
@@ -265,4 +272,18 @@ class BeekeeperTests: XCTestCase {
         XCTAssertEqual(thirdEvent.custom, [nil, "1"])
     }
     
+    func testOverwritingProperty() {
+        let beekeeper = testableBeekeeper
+        
+        beekeeper.setPropertyCount(2)
+        beekeeper.setProperty(0, value: "0")
+        beekeeper.setProperty(1, value: "1")
+        
+        beekeeper.track(name: "First", group: "Group", custom: [nil, "A"])
+        
+        XCTAssertEqual(beekeeper.queue.count, 1)
+        
+        let event = beekeeper.queue.items[0]
+        XCTAssertEqual(event.custom, ["0", "A"])
+    }
 }

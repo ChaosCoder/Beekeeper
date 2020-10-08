@@ -17,8 +17,14 @@ public protocol BeekeeperType {
     func setInstallDate(_ installDate: Date)
     func setPropertyCount(_ count: Int)
     func setProperty(_ index: Int, value: String?)
-    func track(name: String, group: String, detail: String?, value: Double?)
+    func track(name: String, group: String, detail: String?, value: Double?, custom: [String?]?)
     func dispatch(completion: (() -> Void)?)
+}
+
+extension Array {
+    func element(at index: Int) -> Element? {
+        return index < count ? self[index] : nil
+    }
 }
 
 let memoryKey = "_Beekeeper"
@@ -103,7 +109,13 @@ extension Beekeeper {
         return isActive && dispatchTimer?.isValid ?? false
     }
     
-    public func track(name: String, group: String, detail: String? = nil, value: Double? = nil) {
+    public func track(name: String, group: String, detail: String? = nil, value: Double? = nil, custom: [String?]? = nil) {
+        let mergedCustom: [String?]
+        if let overwriteValues = custom {
+            mergedCustom = overwrite(array: memory.custom, with: overwriteValues)
+        } else {
+            mergedCustom = memory.custom
+        }
         let event = Event(id: UUID().uuidString.replacingOccurrences(of: "-", with: ""),
                           product: product,
                           timestamp: Date(),
@@ -114,8 +126,17 @@ extension Beekeeper {
                           previousEvent: memory.previousEvent(group: group),
                           previousEventTimestamp: memory.lastTimestamp(eventName: name, eventGroup: group),
                           install: memory.installDay,
-                          custom: memory.custom)
+                          custom: mergedCustom)
         track(event: event)
+    }
+    
+    private func overwrite<T>(array lhs: [T?], with rhs: [T?]) -> [T?] {
+        let length = max(lhs.count, rhs.count)
+        var result = Array<T?>(repeating: nil, count: length)
+        for i in 0..<length {
+            result[i] = (rhs.element(at: i) ?? nil) ?? (lhs.element(at: i) ?? nil)
+        }
+        return result
     }
     
     public func track(event: Event) {
