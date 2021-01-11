@@ -14,7 +14,7 @@ import PromiseKit
 class MockSigner: Signer {
     var callback: ((URLRequest) -> Void)? = nil
 
-    func sign(request: inout URLRequest) {
+    func sign(request: inout URLRequest, date: Date) {
         callback?(request)
     }
 }

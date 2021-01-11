@@ -12,6 +12,13 @@ import struct CryptoSwift.Digest
 
 public protocol Signer {
     func sign(request: inout URLRequest)
+    func sign(request: inout URLRequest, date: Date)
+}
+
+public extension Signer {
+    func sign(request: inout URLRequest) {
+        sign(request: &request, date: Date())
+    }
 }
 
 public class SimpleSigner: Signer {
@@ -22,7 +29,7 @@ public class SimpleSigner: Signer {
         self.secret = secret
     }
     
-    public func sign(request: inout URLRequest) {
+    public func sign(request: inout URLRequest, date: Date) {
         guard let body = request.httpBody else { return }
         let signature = try! HMAC(key: secret.bytes, variant: .sha256).authenticate(body.bytes)
         request.setValue(signature.toBase64(), forHTTPHeaderField: "authorization")
@@ -37,12 +44,11 @@ public class RequestSigner: Signer {
         self.secret = secret
     }
     
-    public func sign(request: inout URLRequest) {
+    public func sign(request: inout URLRequest, date: Date) {
         let method = request.httpMethod ?? "GET"
         let path = request.url?.path ?? ""
         let contentType = request.value(forHTTPHeaderField: "content-type") ?? ""
         
-        let date = Date()
         let dateFormatter = ISO8601DateFormatter()
         let dateString = dateFormatter.string(from: date)
         let body = request.httpBody
