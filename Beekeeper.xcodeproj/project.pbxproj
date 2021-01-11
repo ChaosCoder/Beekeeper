@@ -106,8 +106,7 @@
 		7DDDFAD42082941600F3426C = {
 			isa = PBXGroup;
 			children = (
-				7DDDFAE02082941600F3426C /* Beekeeper */,
-				7DDDFAEB2082941600F3426C /* BeekeeperTests */,
+				E56C074325AC3AED00BE6165 /* Sources */,
 				7DDDFADF2082941600F3426C /* Products */,
 				F1C6D79C4BF88FA7D95918D0 /* Pods */,
 				21ED1033C9C41EFDF0C636AF /* Frameworks */,
@@ -151,6 +150,15 @@
 				7DDDFAEE2082941600F3426C /* Info.plist */,
 			);
 			path = BeekeeperTests;
+			sourceTree = "<group>";
+		};
+		E56C074325AC3AED00BE6165 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				7DDDFAE02082941600F3426C /* Beekeeper */,
+				7DDDFAEB2082941600F3426C /* BeekeeperTests */,
+			);
+			path = Sources;
 			sourceTree = "<group>";
 		};
 		F1C6D79C4BF88FA7D95918D0 /* Pods */ = {
@@ -503,7 +511,7 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				INFOPLIST_FILE = Beekeeper/Info.plist;
+				INFOPLIST_FILE = Sources/Beekeeper/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -531,7 +539,7 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				INFOPLIST_FILE = Beekeeper/Info.plist;
+				INFOPLIST_FILE = Sources/Beekeeper/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -552,7 +560,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 49YH985E25;
-				INFOPLIST_FILE = BeekeeperTests/Info.plist;
+				INFOPLIST_FILE = Sources/BeekeeperTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -571,7 +579,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 49YH985E25;
-				INFOPLIST_FILE = BeekeeperTests/Info.plist;
+				INFOPLIST_FILE = Sources/BeekeeperTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
