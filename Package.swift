@@ -10,7 +10,7 @@ let package = Package(
         .library(name: "Beekeeper", targets: ["Beekeeper"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/ChaosCoder/ConvAPI.git", .branch("master")),
+        .package(url: "https://github.com/ChaosCoder/ConvAPI.git", from: "1.0.1"),
         .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", from: "1.3.8"),
         .package(url: "https://github.com/mxcl/PromiseKit", from: "6.8.0"),
     ],

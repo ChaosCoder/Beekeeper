@@ -5,9 +5,9 @@
         "package": "ConvAPI",
         "repositoryURL": "https://github.com/ChaosCoder/ConvAPI.git",
         "state": {
-          "branch": "master",
-          "revision": "9c03883b9565f3eae904cd5b524d0aba6d7c1f92",
-          "version": null
+          "branch": null,
+          "revision": "6772e40fcd9b3b0b61ad5a66ec11e2e15534933e",
+          "version": "1.0.1"
         }
       },
       {
