@@ -8,8 +8,16 @@ Beekeeper allows you to get insights about your most important KPIs like daily, 
 
 ## Install
 
+### CocoaPods
+
 ```ruby
 pod 'Beekeeper'
+```
+
+### Swift Package Manager
+
+```swift
+.package(url: "https://github.com/ChaosCoder/Shouter.git", from: "0.5.0")
 ```
 
 ## What user data is stored?

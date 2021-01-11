@@ -15,7 +15,7 @@ Pod::Spec.new do |s|
   s.swift_version= "5.0"
   s.source       = { :git => "https://github.com/ChaosCoder/Beekeeper.git", :tag => "#{s.version}" }
 
-  s.source_files  = "Beekeeper", "Beekeeper/**/*.swift"
+  s.source_files  = "Sources/Beekeeper", "Sources/Beekeeper/**/*.swift"
   s.dependency "ConvAPI"
   s.dependency "CryptoSwift"
   s.dependency "PromiseKit"
