@@ -31,7 +31,7 @@ public class SimpleSigner: Signer {
     
     public func sign(request: inout URLRequest, date: Date) {
         guard let body = request.httpBody else { return }
-        let signature = try! HMAC(key: secret.bytes, variant: .sha256).authenticate(body.bytes)
+        let signature = try! HMAC(key: secret.bytes, variant: .sha2(.sha256)).authenticate(body.bytes)
         request.setValue(signature.toBase64(), forHTTPHeaderField: "authorization")
     }
 }
@@ -62,7 +62,7 @@ public class RequestSigner: Signer {
                      \(path)
                      """
         
-        let signature = try! HMAC(key: secret.bytes, variant: .sha256).authenticate(string.bytes)
+        let signature = try! HMAC(key: secret.bytes, variant: .sha2(.sha256)).authenticate(string.bytes)
         request.setValue(dateString, forHTTPHeaderField: "authorization-date")
         request.setValue(signature.toBase64(), forHTTPHeaderField: "authorization")
     }
