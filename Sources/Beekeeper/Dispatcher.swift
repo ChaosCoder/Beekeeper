@@ -48,13 +48,18 @@ public class URLDispatcher: Dispatcher {
     }
     
     private func send(events: [Event]) -> Promise<Void> {
-        return backend.request(method: .POST,
-                               baseURL: baseURL,
-                               resource: path,
-                               headers: nil,
-                               params: nil,
-                               body: events,
-                               error: URLDispatcherError.self,
-                               decorator: signer.sign(request:))
+        return Promise(resolver: { seal in
+            Task {
+                try await backend.request(method: .POST,
+                                baseURL: baseURL,
+                                resource: path,
+                                headers: nil,
+                                params: nil,
+                                body: events,
+                                error: URLDispatcherError.self,
+                                decorator: signer.sign(request:))
+                seal.fulfill_()
+            }
+        })
     }
 }

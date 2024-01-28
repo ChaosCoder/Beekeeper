@@ -4,15 +4,15 @@ import PackageDescription
 let package = Package(
     name: "Beekeeper",
     platforms: [
-        .iOS(.v11),
+        .iOS(.v15),
     ],
     products: [
         .library(name: "Beekeeper", targets: ["Beekeeper"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/ChaosCoder/ConvAPI.git", from: "1.0.2"),
-        .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", from: "1.3.8"),
-        .package(url: "https://github.com/mxcl/PromiseKit", from: "6.8.0"),
+        .package(url: "https://github.com/ChaosCoder/ConvAPI.git", from: "2.0.0"),
+        .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", from: "1.8.1"),
+        .package(url: "https://github.com/mxcl/PromiseKit", from: "8.0.0"),
     ],
     targets: [
         .target(name: "Beekeeper", dependencies: [

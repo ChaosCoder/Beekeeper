@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/ChaosCoder/ConvAPI.git",
       "state" : {
-        "revision" : "393db513ea0f37a06568723396da9ada41f95714",
-        "version" : "1.0.2"
+        "revision" : "595e086a05aa59d8ddcbf792570a0a37c743d87f",
+        "version" : "2.0.0"
       }
     },
     {
@@ -14,17 +14,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/krzyzanowskim/CryptoSwift.git",
       "state" : {
-        "revision" : "19b3c3ceed117c5cc883517c4e658548315ba70b",
-        "version" : "1.6.0"
-      }
-    },
-    {
-      "identity" : "foundation",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/PromiseKit/Foundation.git",
-      "state" : {
-        "revision" : "985f17fa69ee0e5b7eb3ff9be87ffc4e05fc0927",
-        "version" : "3.4.0"
+        "revision" : "7892a123f7e8d0fe62f9f03728b17bbd4f94df5c",
+        "version" : "1.8.1"
       }
     },
     {
@@ -32,8 +23,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/mxcl/PromiseKit",
       "state" : {
-        "revision" : "43772616c46a44a9977e41924ae01d0e55f2f9ca",
-        "version" : "6.18.1"
+        "revision" : "cb70b070cde06837cd10a1febdf6105c1a3bb348",
+        "version" : "8.1.1"
       }
     }
   ],
