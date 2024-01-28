@@ -1,0 +1,32 @@
+format_version: "8"
+default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+project_type: ios
+trigger_map:
+- push_branch: '*'
+  workflow: primary
+- pull_request_source_branch: '*'
+  workflow: primary
+workflows:
+  primary:
+    steps:
+    - git-clone@8: {}
+    - certificate-and-profile-installer@1: {}
+    - xcode-test@5:
+        inputs:
+        - project_path: $BITRISE_PROJECT_PATH
+        - scheme: $BITRISE_SCHEME
+app:
+  envs:
+  - opts:
+      is_expand: false
+    BITRISE_PROJECT_PATH: Package.swift
+  - opts:
+      is_expand: false
+    BITRISE_SCHEME: Beekeeper
+  - opts:
+      is_expand: false
+    BITRISE_EXPORT_METHOD: development
+meta:
+  bitrise.io:
+    stack: osx-xcode-edge
+    machine_type_id: g2-m1.4core
