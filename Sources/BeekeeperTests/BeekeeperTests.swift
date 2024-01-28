@@ -8,7 +8,6 @@
 
 import XCTest
 import ConvAPI
-import PromiseKit
 @testable import Beekeeper
 
 struct MockStorage: Storage {
@@ -40,18 +39,14 @@ struct MockDispatcher: Dispatcher {
     var maxBatchSize: Int
     var timeout: TimeInterval
     
-    func dispatch(event: Event) -> Promise<Void> {
+    func dispatch(event: Event) async throws {
         if let error = callback?([event]) {
-            return Promise(error: error)
-        } else {
-            return Promise()
+            throw error
         }
     }
-    func dispatch(events: [Event]) -> Promise<Void> {
+    func dispatch(events: [Event]) async throws {
         if let error = callback?(events) {
-            return Promise(error: error)
-        } else {
-            return Promise()
+            throw error
         }
     }
 }
@@ -98,7 +93,19 @@ class BeekeeperTests: XCTestCase {
         XCTAssertEqual(beekeeper.queue.count, 1)
         beekeeper.dispatch()
         XCTAssertEqual(beekeeper.queue.count, 0)
+    }
+    
+    func testAsyncDispatchingClearsQueue() async {
+        let beekeeper = testableBeekeeper
+        beekeeper.start()
         
+        let eventName = "TestName"
+        let eventGroup = "TestGroup"
+        beekeeper.track(name: eventName, group: eventGroup)
+        
+        XCTAssertEqual(beekeeper.queue.count, 1)
+        await beekeeper.dispatch()
+        XCTAssertEqual(beekeeper.queue.count, 0)
     }
     
     func testDispatchingWithEmptyQueueStopsDispatcher() {

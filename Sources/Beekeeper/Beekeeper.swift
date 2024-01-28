@@ -8,7 +8,6 @@
 
 import Foundation
 import ConvAPI
-import PromiseKit
 
 public protocol BeekeeperType {
     func start()
@@ -86,7 +85,7 @@ public class Beekeeper: NSObject, BeekeeperType {
 
 extension Beekeeper {
     
-    @objc public var optedOut: Bool {
+    public var optedOut: Bool {
         get {
             return memory.optedOut
         }
@@ -95,17 +94,17 @@ extension Beekeeper {
         }
     }
     
-    @objc public func start() {
+    public func start() {
         isActive = true
         startTimer()
     }
     
-    @objc public func stop() {
+    public func stop() {
         isActive = false
         stopTimer()
     }
     
-    @objc public func isRunning() -> Bool {
+    public func isRunning() -> Bool {
         return isActive && dispatchTimer?.isValid ?? false
     }
     
@@ -150,11 +149,11 @@ extension Beekeeper {
         }
     }
     
-    @objc public func setInstallDate(_ installDate: Date) {
+    public func setInstallDate(_ installDate: Date) {
         memory.installDay = installDate.day
     }
     
-    @objc public func setPropertyCount(_ count: Int) {
+    public func setPropertyCount(_ count: Int) {
         if count > memory.custom.count {
             memory.custom.append(contentsOf: [String?].init(repeating: nil, count: count - memory.custom.count))
         } else if count < memory.custom.count {
@@ -162,7 +161,7 @@ extension Beekeeper {
         }
     }
     
-    @objc public func setProperty(_ index: Int, value: String?) {
+    public func setProperty(_ index: Int, value: String?) {
         if index >= memory.custom.count {
             setPropertyCount(index + 1)
         }
@@ -170,7 +169,26 @@ extension Beekeeper {
         memory.custom[index] = value
     }
     
-    @objc public func dispatch(completion: (() -> Void)? = nil) {
+    public func dispatch() async {
+        guard isActive, !optedOut else {
+            return
+        }
+        
+        let events = queue.remove(max: dispatcher.maxBatchSize)
+        
+        guard events.count > 0 else {
+            stopTimer()
+            return
+        }
+        
+        do {
+            try await dispatcher.dispatch(events: events)
+        } catch {
+            queue.enqueue(items: events)
+        }
+    }
+    
+    public func dispatch(completion: (() -> Void)? = nil) {
         guard isActive, !optedOut else {
             completion?()
             return
@@ -184,11 +202,12 @@ extension Beekeeper {
             return
         }
 
-        firstly {
-            dispatcher.dispatch(events: events)
-        }.catch { error in
-            self.queue.enqueue(items: events)
-        }.finally {
+        Task {
+            do {
+                try await dispatcher.dispatch(events: events)
+            } catch {
+                queue.enqueue(items: events)
+            }
             completion?()
         }
     }
@@ -199,20 +218,19 @@ extension Beekeeper {
     }
 }
 
-@objc
 public extension Beekeeper {
-    @objc convenience init(product: String, baseURL: URL, secret: String) {
+    convenience init(product: String, baseURL: URL, secret: String) {
         let signer = RequestSigner(secret: secret)
         let path = "/\(product)"
         let dispatcher = URLDispatcher(baseURL: baseURL, path: path, signer: signer)
         self.init(product: product, dispatcher: dispatcher)
     }
     
-    @objc func track(name: String, group: String, detail: String? = nil) {
+    func track(name: String, group: String, detail: String? = nil) {
         track(name: name, group: group, detail: detail, value: nil)
     }
     
-    @objc func trackValue(name: String, group: String, detail: String? = nil, value: NSNumber) {
+    func trackValue(name: String, group: String, detail: String? = nil, value: NSNumber) {
         let double = value.doubleValue
         track(name: name, group: group, detail: detail, value: double)
     }

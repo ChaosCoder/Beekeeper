@@ -8,13 +8,12 @@
 
 import Foundation
 import ConvAPI
-import PromiseKit
 
 public protocol Dispatcher {
     var timeout: TimeInterval { get }
     var maxBatchSize: Int { get }
-    func dispatch(event: Event) -> Promise<Void>
-    func dispatch(events: [Event]) -> Promise<Void>
+    func dispatch(event: Event) async throws
+    func dispatch(events: [Event]) async throws
 }
 
 public struct URLDispatcherError: Codable, Error {
@@ -39,27 +38,22 @@ public class URLDispatcher: Dispatcher {
         self.backend = backend
     }
     
-    public func dispatch(events: [Event]) -> Promise<Void> {
-        return send(events: events)
+    public func dispatch(events: [Event]) async throws {
+        try await send(events: events)
     }
     
-    public func dispatch(event: Event) -> Promise<Void> {
-        return send(events: [event])
+    public func dispatch(event: Event) async throws {
+        try await send(events: [event])
     }
     
-    private func send(events: [Event]) -> Promise<Void> {
-        return Promise(resolver: { seal in
-            Task {
-                try await backend.request(method: .POST,
-                                baseURL: baseURL,
-                                resource: path,
-                                headers: nil,
-                                params: nil,
-                                body: events,
-                                error: URLDispatcherError.self,
-                                decorator: signer.sign(request:))
-                seal.fulfill_()
-            }
-        })
+    private func send(events: [Event]) async throws {
+        try await backend.request(method: .POST,
+                                  baseURL: baseURL,
+                                  resource: path,
+                                  headers: nil,
+                                  params: nil,
+                                  body: events,
+                                  error: URLDispatcherError.self,
+                                  decorator: signer.sign(request:))
     }
 }

@@ -8,7 +8,6 @@
 
 import XCTest
 import ConvAPI
-import PromiseKit
 @testable import Beekeeper
 
 class MockSigner: Signer {
@@ -53,7 +52,7 @@ class DispatcherTest: XCTestCase {
 
     let url = URL(string: "example.org")!
     
-    func testDispatching() {
+    func testDispatching() async throws {
         let signer = MockSigner()
         let expectation = self.expectation(description: "Expectation")
         
@@ -67,15 +66,11 @@ class DispatcherTest: XCTestCase {
         let install = Date()
         let event = Event(id: "1", product: "0", timestamp: install.addingTimeInterval(1), name: "name", group: "group", detail: "detail", value: 42, previousEvent: "previous", previousEventTimestamp: install.day, install: install.day, custom: ["123", nil, "345"])
         
-        firstly {
-            dispatcher.dispatch(event: event)
-        }.catch { error in
-            XCTFail("Unexpected error: \(error)")
-        }
-        wait(for: [expectation], timeout: 2)
+        try await  dispatcher.dispatch(event: event)
+        await fulfillment(of: [expectation])
     }
     
-    func testDispatchingWithError() {
+    func testDispatchingWithError() async throws {
         let signer = MockSigner()
         let expectedError = URLDispatcherError(error: "Test-Error")
         let expectation = self.expectation(description: "Expectation")
@@ -88,16 +83,16 @@ class DispatcherTest: XCTestCase {
         let install = Date()
         let event = Event(id: "1", product: "0", timestamp: install.addingTimeInterval(1), name: "name", group: "group", detail: "detail", value: 42, previousEvent: "previous", previousEventTimestamp: install.day, install: install.day, custom: ["123", nil, "345"])
         
-        firstly {
-            dispatcher.dispatch(event: event)
-        }.done {
+        do {
+            try await dispatcher.dispatch(event: event)
             XCTFail("An error should have occured")
-        }.catch { error in
+        } catch {
             guard let error = error as? URLDispatcherError else {
                 return XCTFail()
             }
             XCTAssertEqual(error.error, expectedError.error)
         }
-        wait(for: [expectation], timeout: 2)
+        
+        await fulfillment(of: [expectation])
     }
 }
