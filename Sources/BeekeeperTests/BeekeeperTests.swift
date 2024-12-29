@@ -35,7 +35,7 @@ struct MockStorage: Storage {
 }
 
 struct MockDispatcher: Dispatcher {
-    var callback: (([Event]) -> Error?)?
+    var callback: (@Sendable ([Event]) -> Error?)?
     var maxBatchSize: Int
     var timeout: TimeInterval
     
@@ -51,6 +51,7 @@ struct MockDispatcher: Dispatcher {
     }
 }
 
+@MainActor
 class BeekeeperTests: XCTestCase {
     
     var testableBeekeeper: Beekeeper {
@@ -81,7 +82,7 @@ class BeekeeperTests: XCTestCase {
         XCTAssertEqual(event?.custom, eventCustom)
     }
     
-    func testSuccessfulDispatchingClearsQueue() {
+    func testSuccessfulDispatchingClearsQueue() async {
         
         let beekeeper = testableBeekeeper
         beekeeper.start()
@@ -91,7 +92,7 @@ class BeekeeperTests: XCTestCase {
         beekeeper.track(name: eventName, group: eventGroup)
         
         XCTAssertEqual(beekeeper.queue.count, 1)
-        beekeeper.dispatch()
+        await beekeeper.dispatch()
         XCTAssertEqual(beekeeper.queue.count, 0)
     }
     
@@ -108,11 +109,11 @@ class BeekeeperTests: XCTestCase {
         XCTAssertEqual(beekeeper.queue.count, 0)
     }
     
-    func testDispatchingWithEmptyQueueStopsDispatcher() {
+    func testDispatchingWithEmptyQueueStopsDispatcher() async {
         let beekeeper = testableBeekeeper
         beekeeper.start()
         XCTAssertTrue(beekeeper.isRunning())
-        beekeeper.dispatch()
+        await beekeeper.dispatch()
         XCTAssertFalse(beekeeper.isRunning())
     }
     
@@ -145,7 +146,7 @@ class BeekeeperTests: XCTestCase {
         wait(for: [expect], timeout: 2)
     }
     
-    func testPrevEvent() {
+    func testPrevEvent() async {
         let expect = expectation(description: "Completion")
         
         let date = "2018-04-20"
@@ -186,12 +187,12 @@ class BeekeeperTests: XCTestCase {
         beekeeper.track(name: "Same", group: "Group")
         beekeeper.track(name: "Name", group: "Group")
         beekeeper.track(name: "Name", group: "Other Group")
-        beekeeper.dispatch()
+        await beekeeper.dispatch()
         
-        wait(for: [expect], timeout: 2)
+        await fulfillment(of: [expect], timeout: 5)
     }
     
-    func testResetting() {
+    func testResetting() async {
         let expect = expectation(description: "Completion")
         expect.expectedFulfillmentCount = 2
         
@@ -211,12 +212,12 @@ class BeekeeperTests: XCTestCase {
         beekeeper.start()
         
         beekeeper.track(name: eventName, group: eventGroup)
-        beekeeper.dispatch()
+        await beekeeper.dispatch()
         beekeeper.reset()
         beekeeper.track(name: eventName, group: eventGroup)
-        beekeeper.dispatch()
+        await beekeeper.dispatch()
         
-        wait(for: [expect], timeout: 5)
+        await fulfillment(of: [expect], timeout: 5)
     }
     
     func testOptingOut() {

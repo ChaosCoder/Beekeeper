@@ -20,14 +20,14 @@ public struct URLDispatcherError: Codable, Error {
     public let error: String
 }
 
-public class URLDispatcher: Dispatcher {
+public struct URLDispatcher: Dispatcher {
     let baseURL: URL
     let path: String
     let backend: API
     let signer: Signer
     
     public let timeout: TimeInterval
-    public var maxBatchSize: Int
+    public let maxBatchSize: Int
     
     public init(baseURL: URL, path: String, signer: Signer, timeout: TimeInterval = 30, maxBatchSize: Int = 10, backend: API = ConvAPI()) {
         self.baseURL = baseURL

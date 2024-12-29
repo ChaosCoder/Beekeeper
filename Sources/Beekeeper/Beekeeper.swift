@@ -8,7 +8,9 @@
 
 import Foundation
 import ConvAPI
+import AsyncAlgorithms
 
+@MainActor
 public protocol BeekeeperType {
     func start()
     func stop()
@@ -17,7 +19,7 @@ public protocol BeekeeperType {
     func setPropertyCount(_ count: Int)
     func setProperty(_ index: Int, value: String?)
     func track(name: String, group: String, detail: String?, value: Double?, custom: [String?]?)
-    func dispatch(completion: (() -> Void)?)
+    func dispatch() async
 }
 
 extension Array {
@@ -28,6 +30,7 @@ extension Array {
 
 let memoryKey = "_Beekeeper"
 
+@MainActor
 public class Beekeeper: NSObject, BeekeeperType {
     
     // MARK: Dependencies
@@ -39,7 +42,7 @@ public class Beekeeper: NSObject, BeekeeperType {
     
     internal let product: String
     internal var isActive: Bool = false
-    internal var dispatchTimer: Timer?
+    internal var dispatchTask: Task<Void, Never>?
     
     private var memory: Memory {
         didSet {
@@ -63,23 +66,24 @@ public class Beekeeper: NSObject, BeekeeperType {
     }
     
     private func startTimer() {
-        guard isActive, dispatchTimer == nil else { return }
-        dispatchTimer = Timer.scheduledTimer(withTimeInterval: dispatcher.timeout, repeats: true, block: { [weak self] (_) in
-            self?.dispatch()
-        })
+        guard isActive, dispatchTask == nil else { return }
+        
+        let dispatchTimer = AsyncTimerSequence.repeating(every: .seconds(dispatcher.timeout))
+        
+        dispatchTask = Task.detached {
+            for await _ in dispatchTimer {
+                await self.dispatch()
+            }
+        }
     }
     
     private func stopTimer() {
-        dispatchTimer?.invalidate()
-        dispatchTimer = nil
+        dispatchTask?.cancel()
+        dispatchTask = nil
     }
     
     private func isTimerRunning() -> Bool {
-        return dispatchTimer?.isValid ?? false
-    }
-    
-    deinit {
-        stop()
+        return dispatchTask != nil || !dispatchTask!.isCancelled
     }
 }
 
@@ -105,7 +109,7 @@ extension Beekeeper {
     }
     
     public func isRunning() -> Bool {
-        return isActive && dispatchTimer?.isValid ?? false
+        return isActive && (dispatchTask != nil)
     }
     
     public func track(name: String, group: String, detail: String? = nil, value: Double? = nil, custom: [String?]? = nil) {
@@ -143,10 +147,6 @@ extension Beekeeper {
         
         memory.memorize(event: event)
         queue(event: event)
-        
-        if (!isTimerRunning()) {
-            startTimer()
-        }
     }
     
     public func setInstallDate(_ installDate: Date) {
@@ -181,34 +181,12 @@ extension Beekeeper {
             return
         }
         
-        do {
-            try await dispatcher.dispatch(events: events)
-        } catch {
-            queue.enqueue(items: events)
-        }
-    }
-    
-    public func dispatch(completion: (() -> Void)? = nil) {
-        guard isActive, !optedOut else {
-            completion?()
-            return
-        }
-        
-        let events = queue.remove(max: dispatcher.maxBatchSize)
-        
-        guard events.count > 0 else {
-            stopTimer()
-            completion?()
-            return
-        }
-
-        Task {
+        Task { [dispatcher] in
             do {
                 try await dispatcher.dispatch(events: events)
             } catch {
                 queue.enqueue(items: events)
             }
-            completion?()
         }
     }
     

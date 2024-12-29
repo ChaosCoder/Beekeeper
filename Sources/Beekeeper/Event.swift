@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct Event: Codable {
+public struct Event: Codable, Sendable {
     let id: String
     let product: String
     let timestamp: Date
