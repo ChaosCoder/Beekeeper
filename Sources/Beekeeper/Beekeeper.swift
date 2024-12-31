@@ -28,7 +28,7 @@ extension RequestError: LocalizedError {
     }
 }
 
-public protocol BeekeeperType {
+public protocol BeekeeperType: Sendable {
     func start() async
     func stop() async
     
@@ -47,7 +47,7 @@ extension Array {
 
 let memoryKey = "_Beekeeper"
 
-public actor Beekeeper: NSObject, BeekeeperType {
+public actor Beekeeper: BeekeeperType {
     
     // MARK: Dependencies
     internal var storage: Storage
@@ -79,8 +79,6 @@ public actor Beekeeper: NSObject, BeekeeperType {
         self.clock = clock
         
         self.memory = storage.value(for: memoryKey) ?? Memory()
-        
-        super.init()
     }
     
     private func queue(event: Event) {
