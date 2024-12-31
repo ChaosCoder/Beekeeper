@@ -6,8 +6,9 @@
 //  Copyright © 2018 Andreas Ganske. All rights reserved.
 //
 
-import XCTest
-import ConvAPI
+import Testing
+import Foundation
+import Clocks
 @testable import Beekeeper
 
 struct MockStorage: Storage {
@@ -51,8 +52,7 @@ struct MockDispatcher: Dispatcher {
     }
 }
 
-@MainActor
-class BeekeeperTests: XCTestCase {
+struct BeekeeperTests {
     
     var testableBeekeeper: Beekeeper {
         let mockStorage = MockStorage()
@@ -60,7 +60,8 @@ class BeekeeperTests: XCTestCase {
         return Beekeeper(product: "0", dispatcher: mockDispatcher, storage: mockStorage, queue: Queue<Event>())
     }
     
-    func testTrackingQueuesUp() {
+    @Test
+    func testTrackingQueuesUp() async {
         
         let beekeeper = testableBeekeeper
         
@@ -70,228 +71,238 @@ class BeekeeperTests: XCTestCase {
         let eventValue = 1.0
         let eventCustom = ["Custom"]
         
-        beekeeper.track(name: eventName, group: eventGroup, detail: eventDetail, value: eventValue, custom: eventCustom)
+        await beekeeper.track(name: eventName, group: eventGroup, detail: eventDetail, value: eventValue, custom: eventCustom)
         
-        XCTAssertEqual(beekeeper.queue.count, 1)
+        await #expect(beekeeper.queue.count == 1)
         
-        let event = beekeeper.queue.first()
-        XCTAssertEqual(event?.name, eventName)
-        XCTAssertEqual(event?.group, eventGroup)
-        XCTAssertEqual(event?.detail, eventDetail)
-        XCTAssertEqual(event?.value, eventValue)
-        XCTAssertEqual(event?.custom, eventCustom)
+        let event = await beekeeper.queue.first()
+        #expect(event?.name == eventName)
+        #expect(event?.group == eventGroup)
+        #expect(event?.detail == eventDetail)
+        #expect(event?.value == eventValue)
+        #expect(event?.custom == eventCustom)
     }
     
+    @Test
     func testSuccessfulDispatchingClearsQueue() async {
         
         let beekeeper = testableBeekeeper
-        beekeeper.start()
+        await beekeeper.start()
         
         let eventName = "TestName"
         let eventGroup = "TestGroup"
-        beekeeper.track(name: eventName, group: eventGroup)
+        await beekeeper.track(name: eventName, group: eventGroup)
         
-        XCTAssertEqual(beekeeper.queue.count, 1)
+        await #expect(beekeeper.queue.count == 1)
         await beekeeper.dispatch()
-        XCTAssertEqual(beekeeper.queue.count, 0)
+        await #expect(beekeeper.queue.count == 0)
     }
     
+    @Test
     func testAsyncDispatchingClearsQueue() async {
         let beekeeper = testableBeekeeper
-        beekeeper.start()
+        await beekeeper.start()
         
         let eventName = "TestName"
         let eventGroup = "TestGroup"
-        beekeeper.track(name: eventName, group: eventGroup)
+        await beekeeper.track(name: eventName, group: eventGroup)
         
-        XCTAssertEqual(beekeeper.queue.count, 1)
+        await #expect(beekeeper.queue.count == 1)
         await beekeeper.dispatch()
-        XCTAssertEqual(beekeeper.queue.count, 0)
+        await #expect(beekeeper.queue.count == 0)
     }
     
+    @Test
     func testDispatchingWithEmptyQueueStopsDispatcher() async {
         let beekeeper = testableBeekeeper
-        beekeeper.start()
-        XCTAssertTrue(beekeeper.isRunning())
+        await beekeeper.start()
+        #expect(await beekeeper.isRunning())
         await beekeeper.dispatch()
-        XCTAssertFalse(beekeeper.isRunning())
+        #expect(await !beekeeper.isRunning())
     }
     
-    func testTrackingStartDispatching() {
+    @Test
+    func testTrackingStartDispatching() async {
         let beekeeper = testableBeekeeper
-        beekeeper.start()
-        XCTAssertTrue(beekeeper.isRunning())
-        beekeeper.track(name: "Name", group: "Group")
-        XCTAssertTrue(beekeeper.isRunning())
+        await beekeeper.start()
+        #expect(await beekeeper.isRunning())
+        await beekeeper.track(name: "Name", group: "Group")
+        #expect(await beekeeper.isRunning())
     }
     
-    func testBeekeeperAutomaticallyDispatchesEvents() {
+    @Test
+    func testBeekeeperAutomaticallyDispatchesEvents() async {
         
-        let expect = expectation(description: "Completion")
         let eventName = "TestName"
         let eventGroup = "TestGroup"
         
-        let mockStorage = MockStorage()
-        let mockDispatcher = MockDispatcher(callback: { (events) -> Error? in
-            XCTAssertEqual(events.count, 1)
-            XCTAssertEqual(events[0].name, eventName)
-            expect.fulfill()
-            return nil
-        }, maxBatchSize: 1, timeout: 1)
-        let beekeeper = Beekeeper(product: "0", dispatcher: mockDispatcher, storage: mockStorage, queue: Queue<Event>())
-        
-        beekeeper.start()
-        beekeeper.track(name: eventName, group: eventGroup)
-        
-        wait(for: [expect], timeout: 2)
+        await confirmation { confirm in
+            let mockStorage = MockStorage()
+            let mockDispatcher = MockDispatcher(callback: { (events) -> Error? in
+                #expect(events.count == 1)
+                #expect(events[0].name == eventName)
+                confirm()
+                return nil
+            }, maxBatchSize: 1, timeout: 1)
+            
+            let testClock = TestClock()
+            let beekeeper = Beekeeper(product: "0", dispatcher: mockDispatcher, storage: mockStorage, queue: Queue<Event>(), clock: AnyClock(testClock))
+            await beekeeper.start()
+            await beekeeper.track(name: eventName, group: eventGroup)
+            await testClock.advance(by: .seconds(1))
+        }
     }
     
+    @Test
     func testPrevEvent() async {
-        let expect = expectation(description: "Completion")
-        
         let date = "2018-04-20"
         let timestamp = Date(timeIntervalSince1970: 1524234032) // 2018-04-20T14:20:32Z
         let event = Event(id: "id", product: "0", timestamp: timestamp, name: "Name", group: "Group", detail: nil, value: nil, previousEvent: nil, previousEventTimestamp: nil, install: date, custom: [])
         
-        let mockStorage = MockStorage()
-        let mockDispatcher = MockDispatcher(callback: { (events) -> Error? in
-            XCTAssertEqual(events.count, 5)
+        await confirmation { confirm in
+            let mockStorage = MockStorage()
+            let mockDispatcher = MockDispatcher(callback: { (events) -> Error? in
+                confirm()
+                
+                #expect(events.count == 5)
+                
+                let otherGroupEvent = events[1]
+                #expect(otherGroupEvent.name == "Other")
+                #expect(otherGroupEvent.previousEvent == nil)
+                #expect(otherGroupEvent.previousEventTimestamp == nil)
+                
+                let sameGroupEvent = events[2]
+                #expect(sameGroupEvent.name == "Same")
+                #expect(sameGroupEvent.previousEvent == "Name")
+                #expect(sameGroupEvent.previousEventTimestamp == nil)
+                
+                let newTestName = events[3]
+                #expect(newTestName.name == "Name")
+                #expect(newTestName.previousEvent == "Same")
+                #expect(newTestName.previousEventTimestamp == date)
+                
+                let newTestNameInOtherGroup = events[4]
+                #expect(newTestNameInOtherGroup.name == "Name")
+                #expect(newTestNameInOtherGroup.previousEvent == "Other")
+                #expect(newTestNameInOtherGroup.previousEventTimestamp != date)
+                
+                return nil
+            }, maxBatchSize: 10, timeout: 1)
             
-            let otherGroupEvent = events[1]
-            XCTAssertEqual(otherGroupEvent.name, "Other")
-            XCTAssertNil(otherGroupEvent.previousEvent)
-            XCTAssertNil(otherGroupEvent.previousEventTimestamp)
-            
-            let sameGroupEvent = events[2]
-            XCTAssertEqual(sameGroupEvent.name, "Same")
-            XCTAssertEqual(sameGroupEvent.previousEvent, "Name")
-            XCTAssertNil(sameGroupEvent.previousEventTimestamp)
-            
-            let newTestName = events[3]
-            XCTAssertEqual(newTestName.name, "Name")
-            XCTAssertEqual(newTestName.previousEvent, "Same")
-            XCTAssertEqual(newTestName.previousEventTimestamp, date)
-            
-            let newTestNameInOtherGroup = events[4]
-            XCTAssertEqual(newTestNameInOtherGroup.name, "Name")
-            XCTAssertEqual(newTestNameInOtherGroup.previousEvent, "Other")
-            XCTAssertNotEqual(newTestNameInOtherGroup.previousEventTimestamp, date)
-            
-            expect.fulfill()
-            return nil
-        }, maxBatchSize: 10, timeout: 1)
-        let beekeeper = Beekeeper(product: "0", dispatcher: mockDispatcher, storage: mockStorage, queue: Queue<Event>())
-        beekeeper.start()
-        beekeeper.track(event: event)
-        beekeeper.track(name: "Other", group: "Other Group")
-        beekeeper.track(name: "Same", group: "Group")
-        beekeeper.track(name: "Name", group: "Group")
-        beekeeper.track(name: "Name", group: "Other Group")
-        await beekeeper.dispatch()
-        
-        await fulfillment(of: [expect], timeout: 5)
+            let beekeeper = Beekeeper(product: "0", dispatcher: mockDispatcher, storage: mockStorage, queue: Queue<Event>())
+            await beekeeper.start()
+            await beekeeper.track(event: event)
+            await beekeeper.track(name: "Other", group: "Other Group")
+            await beekeeper.track(name: "Same", group: "Group")
+            await beekeeper.track(name: "Name", group: "Group")
+            await beekeeper.track(name: "Name", group: "Other Group")
+            await beekeeper.dispatch()
+        }
     }
     
+    @Test
     func testResetting() async {
-        let expect = expectation(description: "Completion")
-        expect.expectedFulfillmentCount = 2
-        
         let eventName = "TestName"
         let eventGroup = "TestGroup"
         
-        let mockStorage = MockStorage()
-        let mockDispatcher = MockDispatcher(callback: { (events) -> Error? in
-            let event = events[0]
-            XCTAssertEqual(event.name, eventName)
-            XCTAssertEqual(event.previousEvent, nil)
-            XCTAssertEqual(event.previousEventTimestamp, nil)
-            expect.fulfill()
-            return nil
-        }, maxBatchSize: 1, timeout: 1)
-        let beekeeper = Beekeeper(product: "0", dispatcher: mockDispatcher, storage: mockStorage, queue: Queue<Event>())
-        beekeeper.start()
-        
-        beekeeper.track(name: eventName, group: eventGroup)
-        await beekeeper.dispatch()
-        beekeeper.reset()
-        beekeeper.track(name: eventName, group: eventGroup)
-        await beekeeper.dispatch()
-        
-        await fulfillment(of: [expect], timeout: 5)
+        await confirmation(expectedCount: 2) { confirm in
+            let mockStorage = MockStorage()
+            let mockDispatcher = MockDispatcher(callback: { (events) -> Error? in
+                let event = events[0]
+                #expect(event.name == eventName)
+                #expect(event.previousEvent == nil)
+                #expect(event.previousEventTimestamp == nil)
+                confirm()
+                return nil
+            }, maxBatchSize: 1, timeout: 1)
+            let beekeeper = Beekeeper(product: "0", dispatcher: mockDispatcher, storage: mockStorage, queue: Queue<Event>())
+            await beekeeper.start()
+            
+            await beekeeper.track(name: eventName, group: eventGroup)
+            await beekeeper.dispatch()
+            await beekeeper.reset()
+            await beekeeper.track(name: eventName, group: eventGroup)
+            await beekeeper.dispatch()
+        }
     }
     
-    func testOptingOut() {
+    @Test
+    func testOptingOut() async {
         let beekeeper = testableBeekeeper
-        beekeeper.optedOut = true
+        await beekeeper.setOptedOut(true)
         
-        beekeeper.start()
-        beekeeper.track(name: "Name", group: "Group")
-        XCTAssertEqual(beekeeper.queue.count, 0)
+        await beekeeper.start()
+        await beekeeper.track(name: "Name", group: "Group")
+        #expect(await beekeeper.queue.count == 0)
     }
     
+    @Test
     func testTimeZone() {
         let timestamp = Date(timeIntervalSince1970: 1524268799) // 2018-04-20T23:59:59Z
         let day = timestamp.day
-        XCTAssertEqual(day, "2018-04-20")
+        #expect(day == "2018-04-20")
     }
     
-    func testSettingProperty() {
+    @Test
+    func testSettingProperty() async {
         let beekeeper = testableBeekeeper
-        beekeeper.setProperty(1, value: "1")
-        beekeeper.track(name: "First", group: "Group")
+        await beekeeper.setProperty(1, value: "1")
+        await beekeeper.track(name: "First", group: "Group")
         
-        beekeeper.setProperty(0, value: "0")
-        beekeeper.track(name: "Second", group: "Group")
+        await beekeeper.setProperty(0, value: "0")
+        await beekeeper.track(name: "Second", group: "Group")
         
-        XCTAssertEqual(beekeeper.queue.count, 2)
+        #expect(await beekeeper.queue.count == 2)
         
-        let firstEvent = beekeeper.queue.items[0]
-        XCTAssertEqual(firstEvent.custom, [nil, "1"])
+        let firstEvent = await beekeeper.queue.items[0]
+        #expect(firstEvent.custom == [nil, "1"])
         
-        let secondEvent = beekeeper.queue.items[1]
-        XCTAssertEqual(secondEvent.custom, ["0", "1"])
+        let secondEvent = await beekeeper.queue.items[1]
+        #expect(secondEvent.custom == ["0", "1"])
         
-        beekeeper.setProperty(0, value: nil)
-        beekeeper.setProperty(1, value: nil)
-        beekeeper.track(name: "Third", group: "Group")
+        await beekeeper.setProperty(0, value: nil)
+        await beekeeper.setProperty(1, value: nil)
+        await beekeeper.track(name: "Third", group: "Group")
         
-        let thirdEvent = beekeeper.queue.items[2]
-        XCTAssertEqual(thirdEvent.custom, [nil, nil])
+        let thirdEvent = await beekeeper.queue.items[2]
+        #expect(thirdEvent.custom == [nil, nil])
     }
     
-    func testSettingPropertyCount() {
+    @Test
+    func testSettingPropertyCount() async {
         let beekeeper = testableBeekeeper
-        beekeeper.setPropertyCount(3)
-        beekeeper.track(name: "First", group: "Group")
+        await beekeeper.setPropertyCount(3)
+        await beekeeper.track(name: "First", group: "Group")
         
-        let firstEvent = beekeeper.queue.items[0]
-        XCTAssertEqual(firstEvent.custom, [nil, nil, nil])
+        let firstEvent = await beekeeper.queue.items[0]
+        #expect(firstEvent.custom == [nil, nil, nil])
         
-        beekeeper.setProperty(1, value: "1")
-        beekeeper.track(name: "Second", group: "Group")
+        await beekeeper.setProperty(1, value: "1")
+        await beekeeper.track(name: "Second", group: "Group")
         
-        let secondEvent = beekeeper.queue.items[1]
-        XCTAssertEqual(secondEvent.custom, [nil, "1", nil])
+        let secondEvent = await beekeeper.queue.items[1]
+        #expect(secondEvent.custom == [nil, "1", nil])
         
-        beekeeper.setPropertyCount(2)
-        beekeeper.track(name: "Third", group: "Group")
+        await beekeeper.setPropertyCount(2)
+        await beekeeper.track(name: "Third", group: "Group")
         
-        let thirdEvent = beekeeper.queue.items[2]
-        XCTAssertEqual(thirdEvent.custom, [nil, "1"])
+        let thirdEvent = await beekeeper.queue.items[2]
+        #expect(thirdEvent.custom == [nil, "1"])
     }
     
-    func testOverwritingProperty() {
+    @Test
+    func testOverwritingProperty() async {
         let beekeeper = testableBeekeeper
         
-        beekeeper.setPropertyCount(2)
-        beekeeper.setProperty(0, value: "0")
-        beekeeper.setProperty(1, value: "1")
+        await beekeeper.setPropertyCount(2)
+        await beekeeper.setProperty(0, value: "0")
+        await beekeeper.setProperty(1, value: "1")
         
-        beekeeper.track(name: "First", group: "Group", custom: [nil, "A"])
+        await beekeeper.track(name: "First", group: "Group", custom: [nil, "A"])
         
-        XCTAssertEqual(beekeeper.queue.count, 1)
+        #expect(await beekeeper.queue.count == 1)
         
-        let event = beekeeper.queue.items[0]
-        XCTAssertEqual(event.custom, ["0", "A"])
+        let event = await beekeeper.queue.items[0]
+        #expect(event.custom == ["0", "A"])
     }
 }

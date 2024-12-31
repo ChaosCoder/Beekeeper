@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct Queue<Item> {
+public struct Queue<Item: Sendable>: Sendable {
     
     var items: [Item]
     

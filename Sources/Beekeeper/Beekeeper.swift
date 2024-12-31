@@ -7,18 +7,35 @@
 //
 
 import Foundation
-import ConvAPI
 import AsyncAlgorithms
+import Clocks
 
-@MainActor
+public enum RequestError {
+    case invalidRequest
+    case invalidHTTPResponse
+    case emptyErrorResponse(httpStatusCode: Int)
+    case emptyResponse
+}
+
+extension RequestError: LocalizedError {
+    public var errorDescription: String? {
+        switch self {
+        case .invalidRequest: return "Invalid request"
+        case .invalidHTTPResponse: return "Invalid HTTP response"
+        case let .emptyErrorResponse(httpStatusCode): return "Invalid error response with status code \(httpStatusCode)"
+        case .emptyResponse: return "Unexpected empty response"
+        }
+    }
+}
+
 public protocol BeekeeperType {
-    func start()
-    func stop()
+    func start() async
+    func stop() async
     
-    func setInstallDate(_ installDate: Date)
-    func setPropertyCount(_ count: Int)
-    func setProperty(_ index: Int, value: String?)
-    func track(name: String, group: String, detail: String?, value: Double?, custom: [String?]?)
+    func setInstallDate(_ installDate: Date) async
+    func setPropertyCount(_ count: Int) async
+    func setProperty(_ index: Int, value: String?) async
+    func track(name: String, group: String, detail: String?, value: Double?, custom: [String?]?) async
     func dispatch() async
 }
 
@@ -30,13 +47,13 @@ extension Array {
 
 let memoryKey = "_Beekeeper"
 
-@MainActor
-public class Beekeeper: NSObject, BeekeeperType {
+public actor Beekeeper: NSObject, BeekeeperType {
     
     // MARK: Dependencies
     internal var storage: Storage
     internal var queue: Queue<Event>
     internal var dispatcher: Dispatcher
+    internal var clock: AnyClock<Duration>
     
     // MARK: Internal
     
@@ -50,11 +67,16 @@ public class Beekeeper: NSObject, BeekeeperType {
         }
     }
     
-    public init(product: String, dispatcher: Dispatcher, storage: Storage = UserDefaults.standard, queue: Queue<Event> = Queue<Event>()) {
+    internal var queueCount: Int {
+        queue.count
+    }
+    
+    public init(product: String, dispatcher: Dispatcher, storage: Storage = UserDefaults.standard, queue: Queue<Event> = Queue<Event>(), clock: AnyClock<Duration> = .init(.continuous)) {
         self.product = product
         self.storage = storage
         self.queue = queue
         self.dispatcher = dispatcher
+        self.clock = clock
         
         self.memory = storage.value(for: memoryKey) ?? Memory()
         
@@ -65,12 +87,13 @@ public class Beekeeper: NSObject, BeekeeperType {
         queue.enqueue(item: event)
     }
     
-    private func startTimer() {
+    private func startTimer() async {
         guard isActive, dispatchTask == nil else { return }
         
-        let dispatchTimer = AsyncTimerSequence.repeating(every: .seconds(dispatcher.timeout))
+        await self.dispatch()
         
-        dispatchTask = Task.detached {
+        let dispatchTimer = AsyncTimerSequence.repeating(every: .seconds(dispatcher.timeout), clock: clock)
+        dispatchTask = Task {
             for await _ in dispatchTimer {
                 await self.dispatch()
             }
@@ -83,24 +106,24 @@ public class Beekeeper: NSObject, BeekeeperType {
     }
     
     private func isTimerRunning() -> Bool {
-        return dispatchTask != nil || !dispatchTask!.isCancelled
+        guard let dispatchTask else { return false }
+        return !dispatchTask.isCancelled
     }
 }
 
 extension Beekeeper {
     
     public var optedOut: Bool {
-        get {
-            return memory.optedOut
-        }
-        set {
-            memory.optedOut = newValue
-        }
+        memory.optedOut
     }
     
-    public func start() {
+    public func setOptedOut(_ optedOut: Bool) async {
+        memory.optedOut = optedOut
+    }
+    
+    public func start() async {
         isActive = true
-        startTimer()
+        await startTimer()
     }
     
     public func stop() {
@@ -112,7 +135,7 @@ extension Beekeeper {
         return isActive && (dispatchTask != nil)
     }
     
-    public func track(name: String, group: String, detail: String? = nil, value: Double? = nil, custom: [String?]? = nil) {
+    public func track(name: String, group: String, detail: String? = nil, value: Double? = nil, custom: [String?]? = nil) async {
         let mergedCustom: [String?]
         if let overwriteValues = custom {
             mergedCustom = overwrite(array: memory.custom, with: overwriteValues)
@@ -130,7 +153,7 @@ extension Beekeeper {
                           previousEventTimestamp: memory.lastTimestamp(eventName: name, eventGroup: group),
                           install: memory.installDay,
                           custom: mergedCustom)
-        track(event: event)
+        await track(event: event)
     }
     
     private func overwrite<T>(array lhs: [T?], with rhs: [T?]) -> [T?] {
@@ -142,11 +165,15 @@ extension Beekeeper {
         return result
     }
     
-    public func track(event: Event) {
+    public func track(event: Event) async {
         guard !optedOut else { return }
         
         memory.memorize(event: event)
         queue(event: event)
+        
+        if (!isTimerRunning()) {
+            await startTimer()
+        }
     }
     
     public func setInstallDate(_ installDate: Date) {
@@ -181,12 +208,10 @@ extension Beekeeper {
             return
         }
         
-        Task { [dispatcher] in
-            do {
-                try await dispatcher.dispatch(events: events)
-            } catch {
-                queue.enqueue(items: events)
-            }
+        do {
+            try await dispatcher.dispatch(events: events)
+        } catch {
+            queue.enqueue(items: events)
         }
     }
     
@@ -197,19 +222,19 @@ extension Beekeeper {
 }
 
 public extension Beekeeper {
-    convenience init(product: String, baseURL: URL, secret: String) {
+    init(product: String, baseURL: URL, secret: String) {
         let signer = RequestSigner(secret: secret)
         let path = "/\(product)"
         let dispatcher = URLDispatcher(baseURL: baseURL, path: path, signer: signer)
         self.init(product: product, dispatcher: dispatcher)
     }
     
-    func track(name: String, group: String, detail: String? = nil) {
-        track(name: name, group: group, detail: detail, value: nil)
+    func track(name: String, group: String, detail: String? = nil) async {
+        await track(name: name, group: group, detail: detail, value: nil)
     }
     
-    func trackValue(name: String, group: String, detail: String? = nil, value: NSNumber) {
+    func trackValue(name: String, group: String, detail: String? = nil, value: NSNumber) async {
         let double = value.doubleValue
-        track(name: name, group: group, detail: detail, value: double)
+        await track(name: name, group: group, detail: detail, value: double)
     }
 }

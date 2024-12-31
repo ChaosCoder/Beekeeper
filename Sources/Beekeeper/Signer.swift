@@ -10,7 +10,7 @@ import Foundation
 import class CryptoSwift.HMAC
 import struct CryptoSwift.Digest
 
-public protocol Signer {
+public protocol Signer: Sendable {
     func sign(request: inout URLRequest)
     func sign(request: inout URLRequest, date: Date)
 }
@@ -21,7 +21,7 @@ public extension Signer {
     }
 }
 
-public class SimpleSigner: Signer {
+public struct SimpleSigner: Signer {
     
     let secret: String
     
@@ -36,7 +36,7 @@ public class SimpleSigner: Signer {
     }
 }
 
-public class RequestSigner: Signer {
+public struct RequestSigner: Signer {
     
     let secret: String
     

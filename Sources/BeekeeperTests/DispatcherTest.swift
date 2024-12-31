@@ -6,93 +6,110 @@
 //  Copyright © 2018 Andreas Ganske. All rights reserved.
 //
 
-import XCTest
-import ConvAPI
+import Testing
+import Foundation
 @testable import Beekeeper
 
-class MockSigner: Signer {
-    var callback: ((URLRequest) -> Void)? = nil
+struct MockSigner: Signer {
+    let callback: (@Sendable (URLRequest) -> Void)?
 
+    init(callback: (@Sendable (URLRequest) -> Void)? = nil) {
+        self.callback = callback
+    }
+    
     func sign(request: inout URLRequest, date: Date) {
         callback?(request)
     }
 }
 
-class MockAPI: API {
+//class MockAPI: API {
+//
+//    var encoder: JSONEncoder = JSONEncoder()
+//    var decoder: JSONDecoder = JSONDecoder()
+//
+//    var response: () -> Any
+//    
+//    init(response: @escaping () -> Any) {
+//        self.response = response
+//    }
+//
+//    func request<T, U, E>(method: APIMethod,
+//                          baseURL: URL,
+//                          resource: String,
+//                          headers: [String: String]?,
+//                          params: [String: Any]?,
+//                          body: T?,
+//                          error: E.Type,
+//                          decorator: ((inout URLRequest) -> Void)?) async throws -> U where T: Encodable, U: Decodable, E: (Error & Decodable) {
+//        let value = response()
+//        if let value = value as? U {
+//            return value
+//        } else if let error = value as? Error {
+//            throw error
+//        } else {
+//            fatalError()
+//        }
+//    }
+//}
 
-    var encoder: JSONEncoder = JSONEncoder()
-    var decoder: JSONDecoder = JSONDecoder()
-
-    var response: () -> Any
+struct MockRequester: AsynchronousRequester {
     
-    init(response: @escaping () -> Any) {
-        self.response = response
-    }
-
-    func request<T, U, E>(method: APIMethod,
-                          baseURL: URL,
-                          resource: String,
-                          headers: [String: String]?,
-                          params: [String: Any]?,
-                          body: T?,
-                          error: E.Type,
-                          decorator: ((inout URLRequest) -> Void)?) async throws -> U where T: Encodable, U: Decodable, E: (Error & Decodable) {
-        let value = response()
-        if let value = value as? U {
-            return value
-        } else if let error = value as? Error {
-            throw error
-        } else {
-            fatalError()
-        }
+    let callback: @Sendable () async throws -> (Data, URLResponse)
+    
+    func data(
+        for request: URLRequest
+    ) async throws -> (Data, URLResponse) {
+        try await callback()
     }
 }
 
-class DispatcherTest: XCTestCase {
+struct DispatcherTest {
 
     let url = URL(string: "example.org")!
     
+    @Test
     func testDispatching() async throws {
         let signer = MockSigner()
-        let expectation = self.expectation(description: "Expectation")
         
-        let mockBackend = MockAPI {
-            expectation.fulfill()
-            return EmptyResponse()
+        try await confirmation { confirm in
+            let requester = MockRequester {
+                confirm()
+                return (Data(), HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil)!)
+            }
+            let dispatcher = URLDispatcher(baseURL: url, path: "/", signer: signer, requester: requester)
+            
+            let install = Date()
+            let event = Event(id: "1", product: "0", timestamp: install.addingTimeInterval(1), name: "name", group: "group", detail: "detail", value: 42, previousEvent: "previous", previousEventTimestamp: install.day, install: install.day, custom: ["123", nil, "345"])
+            
+            try await dispatcher.dispatch(event: event)
         }
-
-        let dispatcher = URLDispatcher(baseURL: url, path: "/", signer: signer, backend: mockBackend)
-        
-        let install = Date()
-        let event = Event(id: "1", product: "0", timestamp: install.addingTimeInterval(1), name: "name", group: "group", detail: "detail", value: 42, previousEvent: "previous", previousEventTimestamp: install.day, install: install.day, custom: ["123", nil, "345"])
-        
-        try await  dispatcher.dispatch(event: event)
-        await fulfillment(of: [expectation])
     }
     
+    @Test
     func testDispatchingWithError() async throws {
         let signer = MockSigner()
         let expectedError = URLDispatcherError(error: "Test-Error")
-        let expectation = self.expectation(description: "Expectation")
-        let mockBackend = MockAPI {
-            expectation.fulfill()
-            return expectedError
-        }
-        let dispatcher = URLDispatcher(baseURL: url, path: "/", signer: signer, backend: mockBackend)
         
-        let install = Date()
-        let event = Event(id: "1", product: "0", timestamp: install.addingTimeInterval(1), name: "name", group: "group", detail: "detail", value: 42, previousEvent: "previous", previousEventTimestamp: install.day, install: install.day, custom: ["123", nil, "345"])
-        
-        do {
-            try await dispatcher.dispatch(event: event)
-            XCTFail("An error should have occured")
-        } catch {
-            guard let error = error as? URLDispatcherError else {
-                return XCTFail()
+        await confirmation { confirm in
+            let requester = MockRequester {
+                confirm()
+                throw expectedError
             }
-            XCTAssertEqual(error.error, expectedError.error)
+            let dispatcher = URLDispatcher(baseURL: url, path: "/", signer: signer, requester: requester)
+            
+            let install = Date()
+            let event = Event(id: "1", product: "0", timestamp: install.addingTimeInterval(1), name: "name", group: "group", detail: "detail", value: 42, previousEvent: "previous", previousEventTimestamp: install.day, install: install.day, custom: ["123", nil, "345"])
+            
+            do {
+                try await dispatcher.dispatch(event: event)
+                Issue.record("An error should have occured")
+            } catch {
+                guard let error = error as? URLDispatcherError else {
+                    Issue.record("An URLDispatcherError should have occured")
+                    return
+                }
+                #expect(error.error == expectedError.error)
+            }
         }
-        
-        await fulfillment(of: [expectation])
     }
 }
