@@ -32,16 +32,20 @@ public struct URLDispatcher: Dispatcher {
     let path: String
     let signer: Signer
     let requester: AsynchronousRequester
+    let encoder: JSONEncoder
+    let decoder: JSONDecoder
     
     public let timeout: TimeInterval
     public let maxBatchSize: Int
     
-    public init(baseURL: URL, path: String, signer: Signer, timeout: TimeInterval = 30, maxBatchSize: Int = 10, requester: AsynchronousRequester = URLSession.shared) {
+    public init(baseURL: URL, path: String, signer: Signer, timeout: TimeInterval = 30, maxBatchSize: Int = 10, encoder: JSONEncoder = JSONEncoder(), decoder: JSONDecoder = JSONDecoder(), requester: AsynchronousRequester = URLSession.shared) {
         self.baseURL = baseURL
         self.path = path
         self.signer = signer
         self.timeout = timeout
         self.maxBatchSize = maxBatchSize
+        self.encoder = encoder
+        self.decoder = decoder
         self.requester = requester
     }
     
@@ -63,8 +67,6 @@ public struct URLDispatcher: Dispatcher {
             throw RequestError.invalidRequest
         }
         
-        let encoder = JSONEncoder()
-        let decoder = JSONDecoder()
         let bodyData = try encoder.encode(events)
         
         var request = URLRequest(url: url)

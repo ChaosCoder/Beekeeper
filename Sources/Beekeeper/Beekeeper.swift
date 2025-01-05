@@ -223,7 +223,11 @@ public extension Beekeeper {
     init(product: String, baseURL: URL, secret: String) {
         let signer = RequestSigner(secret: secret)
         let path = "/\(product)"
-        let dispatcher = URLDispatcher(baseURL: baseURL, path: path, signer: signer)
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        let dispatcher = URLDispatcher(baseURL: baseURL, path: path, signer: signer, encoder: encoder, decoder: decoder)
         self.init(product: product, dispatcher: dispatcher)
     }
     
