@@ -17,7 +17,7 @@ public protocol BeekeeperType {
     func setPropertyCount(_ count: Int)
     func setProperty(_ index: Int, value: String?)
     func track(name: String, group: String, detail: String?, value: Double?, custom: [String?]?)
-    func dispatch(completion: (() -> Void)?)
+    func dispatch(completion: (@Sendable () -> Void)?)
 }
 
 extension Array {
@@ -188,7 +188,7 @@ extension Beekeeper {
         }
     }
     
-    public func dispatch(completion: (() -> Void)? = nil) {
+    public func dispatch(completion: (@Sendable () -> Void)? = nil) {
         guard isActive, !optedOut else {
             completion?()
             return
