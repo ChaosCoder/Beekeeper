@@ -69,19 +69,22 @@ struct DispatcherTest {
     
     @Test
     func testDispatching() async throws {
-        let signer = MockSigner()
-        
-        try await confirmation { confirm in
-            let requester = MockRequester {
-                confirm()
-                return (Data(), HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil)!)
+        try await confirmation { confirmRequester in
+            try await confirmation { confirmSigning in
+                let signer = MockSigner { _ in
+                    confirmSigning()
+                }
+                let requester = MockRequester {
+                    confirmRequester()
+                    return (Data(), HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil)!)
+                }
+                let dispatcher = URLDispatcher(baseURL: url, path: "/", signer: signer, requester: requester)
+                
+                let install = Date()
+                let event = Event(id: "1", product: "0", timestamp: install.addingTimeInterval(1), name: "name", group: "group", detail: "detail", value: 42, previousEvent: "previous", previousEventTimestamp: install.day, install: install.day, custom: ["123", nil, "345"])
+                
+                try await dispatcher.dispatch(event: event)
             }
-            let dispatcher = URLDispatcher(baseURL: url, path: "/", signer: signer, requester: requester)
-            
-            let install = Date()
-            let event = Event(id: "1", product: "0", timestamp: install.addingTimeInterval(1), name: "name", group: "group", detail: "detail", value: 42, previousEvent: "previous", previousEventTimestamp: install.day, install: install.day, custom: ["123", nil, "345"])
-            
-            try await dispatcher.dispatch(event: event)
         }
     }
     

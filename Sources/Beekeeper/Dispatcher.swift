@@ -74,6 +74,8 @@ public struct URLDispatcher: Dispatcher {
         request.httpBody = bodyData
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
+        signer.sign(request: &request)
+        
         let (data, response) = try await requester.data(for: request)
         
         guard let httpResponse = response as? HTTPURLResponse else {
