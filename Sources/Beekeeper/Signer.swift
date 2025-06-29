@@ -6,7 +6,9 @@
 //  Copyright © 2018 Andreas Ganske. All rights reserved.
 //
 
-import Foundation
+import struct Foundation.Date
+import struct Foundation.URLRequest
+import class Foundation.ISO8601DateFormatter
 import class CryptoSwift.HMAC
 import struct CryptoSwift.Digest
 
