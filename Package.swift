@@ -10,7 +10,7 @@ let package = Package(
         .library(name: "Beekeeper", targets: ["Beekeeper"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", from: "1.8.1"),
+        .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", from: "1.9.0"),
         .package(url: "https://github.com/apple/swift-async-algorithms.git", from: "1.0.3"),
         .package(url: "https://github.com/pointfreeco/swift-clocks.git", from: "1.0.0"),
     ],

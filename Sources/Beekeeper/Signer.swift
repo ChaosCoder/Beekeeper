@@ -6,11 +6,8 @@
 //  Copyright © 2018 Andreas Ganske. All rights reserved.
 //
 
-import struct Foundation.Date
-import struct Foundation.URLRequest
-import class Foundation.ISO8601DateFormatter
-import class CryptoSwift.HMAC
-import struct CryptoSwift.Digest
+import Foundation
+import CryptoSwift
 
 public protocol Signer: Sendable {
     func sign(request: inout URLRequest)
@@ -33,7 +30,7 @@ public struct SimpleSigner: Signer {
     
     public func sign(request: inout URLRequest, date: Date) {
         guard let body = request.httpBody else { return }
-        let signature = try! HMAC(key: secret.bytes, variant: .sha2(.sha256)).authenticate(body.bytes)
+        let signature = try! HMAC(key: secret.bytes, variant: .sha2(.sha256)).authenticate(body.byteArray)
         request.setValue(signature.toBase64(), forHTTPHeaderField: "authorization")
     }
 }
@@ -54,7 +51,7 @@ public struct RequestSigner: Signer {
         let dateFormatter = ISO8601DateFormatter()
         let dateString = dateFormatter.string(from: date)
         let body = request.httpBody
-        let contentHash = body != nil ? Digest.sha1(body!.bytes).toHexString() : ""
+        let contentHash = body != nil ? Digest.sha1(body!.byteArray).toHexString() : ""
         
         let string = """
                      \(method)
