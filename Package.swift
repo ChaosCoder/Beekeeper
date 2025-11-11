@@ -5,6 +5,7 @@ let package = Package(
     name: "Beekeeper",
     platforms: [
         .iOS(.v16),
+        .macOS(.v13),
     ],
     products: [
         .library(name: "Beekeeper", targets: ["Beekeeper"]),
